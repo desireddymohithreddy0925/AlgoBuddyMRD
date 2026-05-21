@@ -68,7 +68,9 @@ export default async function RootLayout({ children }) {
         <link rel="icon" href="/favicon.ico?v=2" />
 
         {/* Prevent flash: apply saved theme before React hydrates */}
-        <script
+        <Script
+          id="theme-script"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
