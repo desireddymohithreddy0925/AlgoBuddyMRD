@@ -81,8 +81,8 @@ const BinarySearch = () => {
       (el, idx) => idx === 0 || el >= elements[idx - 1]
     );
     if (!isSorted) {
-    setMessage("Array must be sorted in ascending order.");
-    return;
+      setMessage("Array must be sorted in ascending order.");
+      return;
     }
 
     const hasDuplicates = new Set(elements).size !== elements.length;
