@@ -86,12 +86,12 @@ const StackVisualizer = () => {
   }, [stack, operation]);
 
   return (
-    <main className="container mx-auto px-6 pb-4">
+    <main className="container mx-auto">
       <p className="text-lg text-center text-gray-600 dark:text-gray-400 mb-8">
         Visualize Push, Pop, and Peek operations
       </p>
 
-      <div className="max-w-md mx-auto">
+      <div className="max-w-4xl mx-auto">
         <PushPop
           stack={stack}
           setStack={setStack}
@@ -101,22 +101,23 @@ const StackVisualizer = () => {
           setOperation={setOperation}
         />
 
-        <button
-          onClick={addRandomStack}
-          disabled={isAnimating || stack.length}
-          className="w-full mb-4 bg-blue-500 hover:bg-blue-600 text-white dark:text-black px-4 py-2 rounded disabled:opacity-50"
-        >
-          Add Random Stack
-        </button>
+        <div className="max-w-4xl mx-auto mb-6">
+          <button
+            onClick={addRandomStack}
+            disabled={isAnimating || stack.length}
+            className="w-full bg-[#a435f0] hover:bg-[#8f2cd6] text-white font-bold px-4 py-3 rounded-lg transition-all duration-200 disabled:opacity-50"
+          >
+            Add Random Stack
+          </button>
+        </div>
 
-        <div ref={stackRef} className="bg-white dark:bg-neutral-950 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
-          {/* peek-only message */}
-          {message && (
-            <div className="mb-6 p-3 rounded-lg bg-green-200 dark:bg-green-500 text-black">
-              {message}
-            </div>
-          )}
+        {message && (
+          <div className="max-w-4xl mx-auto mb-8 p-4 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+            <p className="text-center font-medium">{message}</p>
+          </div>
+        )}
 
+        <div ref={stackRef} className="bg-white dark:bg-neutral-950 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
           {/* vertical stack */}
           <div className="flex flex-col items-center min-h-[200px]">
             <div className="w-full max-w-xs">

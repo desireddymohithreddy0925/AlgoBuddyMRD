@@ -61,42 +61,47 @@ const PushPop = ({ stack, setStack, isAnimating, setIsAnimating, setMessage, set
   };
 
   return (
-    <div className="bg-white dark:bg-neutral-950 p-6 rounded-lg shadow-md mb-4 border border-gray-200 dark:border-gray-700">
-      <div className="flex flex-col sm:flex-row gap-2 mb-4">
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Enter value"
-          className="flex-1 p-2 border rounded dark:bg-neutral-900 focus:ring-2 focus:ring-blue-500"
-          disabled={isAnimating}
-        />
-        <button
-          onClick={push}
-          disabled={isAnimating}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50 sm:w-auto w-full"
-        >
-          Push
-        </button>
+    <div className="bg-white dark:bg-neutral-950 p-6 rounded-xl border border-gray-200 dark:border-gray-700 mb-8 max-w-4xl mx-auto">
+      <div className="mb-4">
+        <label className="block text-gray-700 dark:text-gray-300 mb-2">
+          Enter Value
+        </label>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="Enter value"
+            className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:border-[#a435f0] focus:outline-none focus:ring-2 focus:ring-[#a435f0]/30 transition duration-300"
+            disabled={isAnimating}
+          />
+          <button
+            onClick={push}
+            disabled={isAnimating}
+            className="px-6 py-2 font-bold bg-[#a435f0] text-white rounded-lg hover:bg-[#8f2cd6] transition-all duration-200"
+          >
+            Push
+          </button>
+        </div>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <div className="flex flex-wrap gap-4">
         <button
           onClick={pop}
           disabled={isAnimating || stack.length === 0}
-          className="bg-green-500 text-black px-4 py-2 rounded disabled:opacity-50"
+          className="flex-1 bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-all duration-200"
         >
           Pop
         </button>
         <button
           onClick={peek}
           disabled={isAnimating || stack.length === 0}
-          className="bg-amber-500 text-black px-4 py-2 rounded disabled:opacity-50"
+          className="flex-1 bg-amber-600 text-white font-bold py-3 rounded-lg hover:bg-amber-700 disabled:opacity-50 transition-all duration-200"
         >
           Peek
         </button>
         <button
           onClick={() => setStack([])}
-          className="bg-red-500 text-white px-4 py-2 rounded col-span-2 sm:col-span-1"
+          className="flex-1 border-2 border-[#1a1a1a] dark:border-[#f7f9fa] text-[#1a1a1a] dark:text-[#f7f9fa] font-bold py-[10px] rounded-lg hover:bg-[#1a1a1a] hover:text-white dark:hover:bg-white dark:hover:text-[#1a1a1a] disabled:opacity-50 transition-all duration-200"
           disabled={isAnimating}
         >
           Reset

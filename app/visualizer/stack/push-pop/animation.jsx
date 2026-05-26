@@ -39,13 +39,12 @@ const StackVisualizer = () => {
   }, [stack, operation, isAnimating]);
 
   return (
-    <main className="container mx-auto px-6 pb-8">
+    <main className="container mx-auto">
       <p className="text-lg text-center text-gray-600 dark:text-gray-400 mb-8">
         Visualize the LIFO (Last In, First Out) principle
       </p>
 
       <div className="max-w-4xl mx-auto">
-        {/* Use the PushPop component */}
         <PushPop
           stack={stack}
           setStack={setStack}
@@ -55,13 +54,20 @@ const StackVisualizer = () => {
           setOperation={setOperation}
         />
 
+        {message && (
+          <div className="max-w-3xl mx-auto mb-8 p-4 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+            <p className="text-center font-medium">{message}</p>
+          </div>
+        )}
+
         {/* Stack Visualization */}
-        <div className="bg-white dark:bg-neutral-950 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-neutral-950 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold mb-4">Stack Visualization</h2>
 
           {/* Operation Status */}
           {operation && (
-            <div className="mb-4 p-3 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+            <div className="mb-4 p-3 rounded-lg bg-[#a435f0]/10 dark:bg-[#a435f0]/20 text-[#a435f0] border border-[#a435f0]/20">
+              <span className="font-semibold uppercase text-xs tracking-wider mr-2">Status:</span>
               {operation}
             </div>
           )}

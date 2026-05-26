@@ -38,12 +38,12 @@ const StackVisualizer = () => {
   }, [stack, stackLimit]);
 
   return (
-    <main className="container mx-auto px-6 pb-6">
+    <main className="container mx-auto">
       <p className="text-lg text-center text-gray-600 dark:text-gray-400 mb-8">
         Visualize the LIFO (Last In, First Out) principle
       </p>
 
-      <div className="max-w-md mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* Use the PushPop component */}
         <PushPop
           stack={stack}
@@ -55,48 +55,47 @@ const StackVisualizer = () => {
           stackLimit={stackLimit}
         />
 
-        {/* Is Full Check Button */}
-        <button
-          onClick={checkIfFull}
-          disabled={isAnimating}
-          className="w-full mb-4 duration-300 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
-        >
-          Check If Full
-        </button>
+        <div className="max-w-4xl mx-auto mb-8">
+          <button
+            onClick={checkIfFull}
+            disabled={isAnimating}
+            className="w-full bg-[#10b981] hover:bg-[#059669] text-white font-bold px-6 py-4 rounded-xl transition-all duration-200 disabled:opacity-50 shadow-sm flex items-center justify-center gap-2 group"
+          >
+             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 transform group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Check If Full (isFull)
+          </button>
+        </div>
+
+        {operation && (
+          <div className="max-w-4xl mx-auto mb-4 p-3 rounded-lg bg-[#a435f0]/10 dark:bg-[#a435f0]/20 text-[#a435f0] border border-[#a435f0]/20">
+            <span className="font-semibold uppercase text-xs tracking-wider mr-2">Operation:</span>
+            {operation}
+          </div>
+        )}
+
+        {message && (
+          <div className="max-w-4xl mx-auto mb-8 p-6 rounded-xl bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800/50 text-blue-800 dark:text-blue-200">
+            <p className="text-center font-medium text-lg italic">&quot;{message}&quot;</p>
+          </div>
+        )}
 
         {/* Stack Visualization */}
-        <div className="bg-white dark:bg-neutral-950 p-6 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-neutral-950 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold mb-4">Stack Visualization</h2>
 
           {/* Operation Status */}
           {operation && (
-            <div className="mb-4 p-3 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+            <div className="mb-4 p-3 rounded-lg bg-[#a435f0]/10 dark:bg-[#a435f0]/20 text-[#a435f0] border border-[#a435f0]/20">
+              <span className="font-semibold uppercase text-xs tracking-wider mr-2">Status:</span>
               {operation}
             </div>
           )}
 
-          {/* Message Display */}
-          {message && (
-            <div
-              className={`mb-4 p-3 rounded-lg ${
-                message.includes("pushed")
-                  ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200"
-                  : message.includes("popped")
-                  ? "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200"
-                  : message.includes("Peek")
-                  ? "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200"
-                  : message.includes("FULL")
-                  ? "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200"
-                  : "bg-gray-100 dark:bg-neutral-900 text-gray-800 dark:text-gray-200"
-              }`}
-            >
-              {message}
-            </div>
-          )}
-
           {/* Stack capacity indicator */}
-          <div className="mb-4 text-center text-sm">
-            Capacity: {stack.length}/{stackLimit}
+          <div className="mb-4 text-center text-sm font-medium">
+            Capacity: <span className={stack.length >= stackLimit ? "text-red-500" : "text-green-500"}>{stack.length}</span>/{stackLimit}
           </div>
 
           {/* Vertical Stack */}
