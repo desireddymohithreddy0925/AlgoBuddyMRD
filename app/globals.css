@@ -281,3 +281,16 @@ html {
   background: transparent !important;
   color: #abb2bf !important;
 }
+
+
+@media (pointer: fine) {
+  body.custom-cursor-active,
+  body.custom-cursor-active a,
+  body.custom-cursor-active button,
+  body.custom-cursor-active input,
+  body.custom-cursor-active select,
+  body.custom-cursor-active textarea,
+  body.custom-cursor-active [role="button"] {
+    cursor: none !important;
+  }
+}
