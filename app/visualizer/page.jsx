@@ -146,6 +146,7 @@ const sections = [
           { name: "Insertion Sort", path: "/visualizer/sorting/insertionsort" },
           { name: "Merge Sort", path: "/visualizer/sorting/mergesort" },
           { name: "Quick Sort", path: "/visualizer/sorting/quicksort" },
+          { name: "Counting Sort", path: "/visualizer/sorting/countingsort" },
         ],
       },
     ],
