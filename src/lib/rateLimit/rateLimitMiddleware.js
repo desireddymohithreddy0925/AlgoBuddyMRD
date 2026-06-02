@@ -19,9 +19,10 @@
 // 2. Fall back to the real client IP extracted from Vercel / Next.js
 //    forwarding headers.
 
-const { NextResponse } = require("next/server");
-const { createClient } = require("@supabase/supabase-js");
-const { checkRateLimit } = require("./rateLimit");
+import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { checkRateLimit } from "./rateLimit";
+import { getClientIp } from "@/lib/getClientIp";
 
 /**
  * Extract a stable identity key from the incoming request.
@@ -54,13 +55,8 @@ async function resolveIdentityKey(request) {
     // If Supabase is unavailable, fall through to IP-based limiting
   }
 
-  // ── Fall back to IP ───────────────────────────────────────────────
-  // Vercel sets x-real-ip; fallback chain for other hosts.
-  const ip =
-    request.headers.get("x-real-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    "unknown";
-
+  // ── Fall back to verified IP ──────────────────────────────────────
+  const ip = getClientIp(request.headers);
   return `ip:${ip}`;
 }
 
@@ -99,4 +95,4 @@ async function applyRateLimit(request) {
   return null;
 }
 
-module.exports = { applyRateLimit, resolveIdentityKey };
+export { applyRateLimit, resolveIdentityKey };
