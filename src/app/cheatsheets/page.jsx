@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function CheatsheetsPage() {
   return (
-    <div className="min-h-screen bg-[#0a0a0f]">
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0f]">
       <main className="container-app section-app">
         <div className="mx-auto max-w-6xl">
           <CheatsheetsIndex />
