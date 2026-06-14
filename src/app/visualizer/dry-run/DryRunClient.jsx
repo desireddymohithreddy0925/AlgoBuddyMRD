@@ -13,8 +13,17 @@ import {
   Terminal,
 } from "lucide-react";
 import Link from "next/link";
-import Editor from "@monaco-editor/react";
+import dynamic from "next/dynamic";
 import { useTheme } from "next-themes";
+
+const Editor = dynamic(() => import("@monaco-editor/react"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[420px] items-center justify-center bg-slate-950 font-mono text-sm text-slate-400">
+      Loading Editor...
+    </div>
+  ),
+});
 import { useUser } from "@/features/user/UserContext";
 import { useGlobalCollaboration } from "@/app/components/ui/CollaborationProvider";
 import useVisualizerKeyboard from "@/app/hooks/useVisualizerKeyboard";
