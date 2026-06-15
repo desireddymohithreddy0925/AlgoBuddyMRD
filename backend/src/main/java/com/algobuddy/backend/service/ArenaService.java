@@ -17,6 +17,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 
 import java.time.Duration;
 import java.util.List;
@@ -162,6 +165,11 @@ public class ArenaService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "arenaProfile", key = "#requestingUserId"),
+        @CacheEvict(value = "arenaProfile", key = "#request.opponentId"),
+        @CacheEvict(value = "arenaLeaderboard", allEntries = true)
+    })
     public void recordMatchResult(UUID requestingUserId, com.algobuddy.backend.dto.RecordMatchRequest request) {
         checkMatchResultRateLimit(requestingUserId);
 
