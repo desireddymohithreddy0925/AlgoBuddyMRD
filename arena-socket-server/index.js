@@ -3,6 +3,7 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 app.use(cors());
@@ -31,6 +32,35 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 4000;
+
+// JWT Authentication
+const SUPABASE_JWT_SECRET = process.env.SUPABASE_JWT_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+function verifyAuthToken(token) {
+  if (!token || !SUPABASE_JWT_SECRET) return null;
+  try {
+    const decoded = jwt.verify(token, SUPABASE_JWT_SECRET, { algorithms: ["HS256"] });
+    return decoded;
+  } catch (err) {
+    return null;
+  }
+}
+
+// Connection rate limiting to prevent JWT brute-forcing
+const connectionAttempts = new Map();
+const MAX_CONNECTION_ATTEMPTS = 5;
+const CONNECTION_ATTEMPT_WINDOW_MS = 60000;
+
+function isConnectionRateLimited(ip) {
+  const now = Date.now();
+  const entry = connectionAttempts.get(ip);
+  if (!entry || now > entry.resetTime) {
+    connectionAttempts.set(ip, { count: 1, resetTime: now + CONNECTION_ATTEMPT_WINDOW_MS });
+    return false;
+  }
+  entry.count++;
+  return entry.count > MAX_CONNECTION_ATTEMPTS;
+}
 
 // State Tracking
 let matchmakingQueue = [];
@@ -66,29 +96,49 @@ function isRateLimited(socketId) {
 }
 
 io.on("connection", (socket) => {
-  console.log(`User connected: ${socket.id}`);
+  // Connection-level rate limiting to prevent JWT brute-forcing
+  const clientIp = socket.handshake.address;
+  if (isConnectionRateLimited(clientIp)) {
+    socket.emit("error", { message: "Too many connection attempts. Please try again later." });
+    socket.disconnect(true);
+    return;
+  }
+
+  // Verify Supabase JWT from handshake auth
+  const token = socket.handshake.auth?.token;
+  const authPayload = verifyAuthToken(token);
+  if (!authPayload) {
+    socket.emit("error", { message: "Authentication required. Please sign in again." });
+    socket.disconnect(true);
+    return;
+  }
+
+  // Store verified userId from the JWT payload — never trust client-supplied userId
+  socket.data.userId = authPayload.sub || authPayload.id;
+  console.log(`Authenticated user connected: ${socket.id}, userId: ${socket.data.userId}`);
 
   socket.on("join_matchmaking", (data) => {
     if (isRateLimited(socket.id)) return;
     
-    console.log(`User joined matchmaking:`, data);
+    console.log(`User joined matchmaking: userId=${socket.data.userId}`);
     const targetTopic = data.topic || "Arrays";
     const targetDifficulty = data.difficulty || "Easy";
 
-    // Fix: Remove any existing entry for this user to prevent duplicate queueing
+    // Remove any existing entry for this user to prevent duplicate queueing
+    // Use server-verified userId instead of client-supplied data.userId
     matchmakingQueue = matchmakingQueue.filter(
-      (p) => p.userId !== data.userId && p.socketId !== socket.id
+      (p) => p.userId !== socket.data.userId && p.socketId !== socket.id
     );
 
     // Filter queue to find exact match
     const matchIndex = matchmakingQueue.findIndex(
-      (p) => p.topic === targetTopic && p.difficulty === targetDifficulty && p.userId !== data.userId
+      (p) => p.topic === targetTopic && p.difficulty === targetDifficulty && p.userId !== socket.data.userId
     );
 
     if (matchIndex !== -1) {
       // Match found!
       const opponent = matchmakingQueue.splice(matchIndex, 1)[0];
-      console.log(`Match found: ${opponent.userId} vs ${data.userId}`);
+      console.log(`Match found: ${opponent.userId} vs ${socket.data.userId}`);
       
       const matchId = `match-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
@@ -99,7 +149,7 @@ io.on("connection", (socket) => {
         status: "in-progress",
         players: [
           { userId: opponent.userId, name: opponent.name, socketId: opponent.socketId },
-          { userId: data.userId, name: data.name, socketId: socket.id },
+          { userId: socket.data.userId, name: data.name || "Player", socketId: socket.id },
         ],
       };
 
@@ -119,7 +169,7 @@ io.on("connection", (socket) => {
 
     } else {
       // Add to queue with specific preferences
-      matchmakingQueue.push({ ...data, topic: targetTopic, difficulty: targetDifficulty, socketId: socket.id });
+      matchmakingQueue.push({ userId: socket.data.userId, name: data.name || "Player", rating: data.rating, level: data.level, topic: targetTopic, difficulty: targetDifficulty, socketId: socket.id });
       console.log(`Added to queue. Queue length: ${matchmakingQueue.length}`);
     }
   });
@@ -130,6 +180,9 @@ io.on("connection", (socket) => {
   });
 
   socket.on("join_match", (data) => {
+    // Verify the socket is a participant in the match before allowing room join
+    const matchId = socketToMatch.get(socket.id);
+    if (!matchId || matchId !== data.matchId) return;
     socket.join(data.matchId);
   });
 
@@ -139,13 +192,13 @@ io.on("connection", (socket) => {
     // Broadcast code to opponent in the same room
     socket.to(data.matchId).emit("opponent_code_update", {
       code: data.code,
-      userId: data.userId
+      userId: socket.data.userId
     });
   });
 
   socket.on("test_submit", (data) => {
     if (isRateLimited(socket.id)) return;
-    socket.to(data.matchId).emit("opponent_test_submit", { userId: data.userId });
+    socket.to(data.matchId).emit("opponent_test_submit", { userId: socket.data.userId });
   });
 
   socket.on("test_result", (data) => {
@@ -156,7 +209,7 @@ io.on("connection", (socket) => {
     if (!matchId || matchId !== data.matchId) return;
 
     socket.to(data.matchId).emit("opponent_test_result", {
-      userId: data.userId,
+      userId: socket.data.userId,
       passed: data.passed,
       total: data.total,
       status: data.status
@@ -173,8 +226,8 @@ io.on("connection", (socket) => {
     const match = activeMatches.get(matchId);
     if (match && match.status !== "completed") {
       match.status = "completed";
-      // Emit to everyone in room including sender
-      io.in(matchId).emit("match_ended", { winnerId: data.winnerId });
+      // Use server-verified userId as winner — ignore client-supplied winnerId
+      io.in(matchId).emit("match_ended", { winnerId: socket.data.userId });
       
       // Cleanup match state
       match.players.forEach(p => socketToMatch.delete(p.socketId));
