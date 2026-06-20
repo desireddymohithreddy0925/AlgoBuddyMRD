@@ -179,6 +179,8 @@ const ATOMIC_CONSUME_TOKEN_SCRIPT = `
 const memorySessions = new Map();
 const memorySessionTtls = new Map();
 const memoryLocks = new Map();
+const lockQueues = new Map();
+const LOCK_TIMEOUT_MS = 30000;
 let memorySweepTimer = null;
 let reconciliationTimer = null;
 const RECONCILIATION_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
@@ -1178,24 +1180,62 @@ export async function claimSessionPresenter(sessionId, { userId } = {}) {
 function withMemoryLock(key, fn) {
   const lockKey = `collab:lock:${key}`;
   return new Promise((resolve, reject) => {
-    const tryLock = () => {
-      if (memoryLocks.get(lockKey)) {
-        setTimeout(tryLock, 5);
-        return;
-      }
-      memoryLocks.set(lockKey, true);
-      Promise.resolve().then(() => fn())
-        .then((result) => {
-          memoryLocks.delete(lockKey);
-          resolve(result);
-        })
-        .catch((err) => {
-          memoryLocks.delete(lockKey);
-          reject(err);
-        });
-    };
-    tryLock();
+    const entry = { resolve, reject, fn };
+    const queue = lockQueues.get(lockKey);
+    if (queue) {
+      queue.push(entry);
+      return;
+    }
+    const newQueue = [entry];
+    lockQueues.set(lockKey, newQueue);
+    executeLocked(lockKey, newQueue);
   });
+}
+
+async function executeLocked(lockKey, queue) {
+  const entry = queue[0];
+  const timer = setTimeout(() => {
+    const currentQueue = lockQueues.get(lockKey);
+    if (!currentQueue || currentQueue.length === 0) {
+      lockQueues.delete(lockKey);
+      return;
+    }
+    currentQueue.shift();
+    entry.reject(new Error(`Lock timeout for ${lockKey}`));
+    if (currentQueue.length > 0) {
+      Promise.resolve().then(() => executeLocked(lockKey, currentQueue));
+    } else {
+      lockQueues.delete(lockKey);
+    }
+  }, LOCK_TIMEOUT_MS);
+
+  try {
+    const result = await entry.fn();
+    clearTimeout(timer);
+    notifyNext(lockKey, result, null);
+  } catch (err) {
+    clearTimeout(timer);
+    notifyNext(lockKey, null, err);
+  }
+}
+
+function notifyNext(lockKey, result, error) {
+  const queue = lockQueues.get(lockKey);
+  if (!queue || queue.length === 0) {
+    lockQueues.delete(lockKey);
+    return;
+  }
+  const current = queue.shift();
+  if (error) {
+    current.reject(error);
+  } else {
+    current.resolve(result);
+  }
+  if (queue.length > 0) {
+    Promise.resolve().then(() => executeLocked(lockKey, queue));
+  } else {
+    lockQueues.delete(lockKey);
+  }
 }
 
 export async function exchangeRealtimeSubscriptionToken(
