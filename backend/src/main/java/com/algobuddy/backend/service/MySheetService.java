@@ -38,13 +38,15 @@ public class MySheetService {
         Optional<MySheet> existing = mySheetRepository.findByUserIdAndProblemId(userId, problemId);
         if (existing.isPresent()) {
             MySheet item = existing.get();
-            if (note != null) {
-                item.setNote(note);
+            if (item != null) {
+                if (note != null) {
+                    item.setNote(note);
+                }
+                if (isPublic != null) {
+                    item.setPublic(isPublic);
+                }
+                mySheetRepository.save(item);
             }
-            if (isPublic != null) {
-                item.setPublic(isPublic);
-            }
-            mySheetRepository.save(item);
         } else {
             MySheet item = new MySheet();
             item.setUserId(userId);

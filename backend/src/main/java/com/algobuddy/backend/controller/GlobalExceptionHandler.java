@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,6 +48,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         Map<String, String> response = new HashMap<>();
         response.put("error", "Data integrity violation. A conflict occurred, likely due to a duplicate entry.");
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(AuthenticationCredentialsNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleAuthenticationCredentialsNotFound(AuthenticationCredentialsNotFoundException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Authentication required. Please log in.");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)

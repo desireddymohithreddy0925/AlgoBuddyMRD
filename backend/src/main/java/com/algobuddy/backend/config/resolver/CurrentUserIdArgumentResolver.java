@@ -2,6 +2,7 @@ package com.algobuddy.backend.config.resolver;
 
 import com.algobuddy.backend.config.annotation.CurrentUserId;
 import org.springframework.core.MethodParameter;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -27,11 +28,11 @@ public class CurrentUserIdArgumentResolver implements HandlerMethodArgumentResol
     public Object resolveArgument(@NonNull MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
                                   @NonNull NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
-            return UUID.fromString(jwt.getSubject());
+
+        if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
+            throw new AuthenticationCredentialsNotFoundException("User is not authenticated");
         }
-        
-        return null;
+
+        return UUID.fromString(jwt.getSubject());
     }
 }

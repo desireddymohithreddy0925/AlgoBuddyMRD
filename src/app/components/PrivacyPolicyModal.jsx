@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { FiX } from "react-icons/fi";
+import { FiX, FiUser, FiSettings, FiActivity, FiShield, FiGlobe, FiCheckCircle, FiArchive, FiLock, FiRefreshCw, FiMail } from "react-icons/fi";
 
 export const policySections = [
   {
     id: "information-we-collect",
     title: "Information We Collect",
+    icon: <FiUser className="w-5 h-5" />,
     points: [
       "Name",
       "Email address",
@@ -16,6 +17,7 @@ export const policySections = [
   {
     id: "how-we-use-your-information",
     title: "How We Use Your Information",
+    icon: <FiSettings className="w-5 h-5" />,
     points: [
       "Account management, including account creation, login, and profile maintenance",
       "Service improvement, including feature development, bug fixing, and performance optimization",
@@ -26,6 +28,7 @@ export const policySections = [
   {
     id: "cookies-and-tracking-technologies",
     title: "Cookies and Tracking Technologies",
+    icon: <FiActivity className="w-5 h-5" />,
     points: [
       "Essential cookies that are necessary for core platform functionality such as authentication and session continuity",
       "Analytics cookies that help us understand product usage and improve platform performance",
@@ -35,6 +38,7 @@ export const policySections = [
   {
     id: "data-storage-and-security",
     title: "Data Storage and Security",
+    icon: <FiShield className="w-5 h-5" />,
     points: [
       "We use encryption and transport security practices to protect data in transit and, where applicable, at rest",
       "We apply secure data handling processes and access controls for internal systems",
@@ -44,6 +48,7 @@ export const policySections = [
   {
     id: "third-party-services",
     title: "Third-Party Services",
+    icon: <FiGlobe className="w-5 h-5" />,
     points: [
       "Authentication providers that help us support secure sign-in",
       "Analytics providers that assist with usage measurement and service quality monitoring",
@@ -53,6 +58,7 @@ export const policySections = [
   {
     id: "user-rights",
     title: "User Rights",
+    icon: <FiCheckCircle className="w-5 h-5" />,
     points: [
       "Access personal data we hold about you",
       "Correct inaccurate or incomplete personal data",
@@ -63,21 +69,25 @@ export const policySections = [
   {
     id: "data-retention",
     title: "Data Retention",
+    icon: <FiArchive className="w-5 h-5" />,
     data: "We retain personal data for as long as needed to provide our services, comply with legal obligations, resolve disputes, and enforce agreements. Retention periods vary based on the type of data and the purpose for which it was collected.",
   },
   {
     id: "childrens-privacy",
     title: "Children's Privacy",
+    icon: <FiLock className="w-5 h-5" />,
     data: "Our services are not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13.",
   },
   {
     id: "policy-updates",
     title: "Policy Updates",
+    icon: <FiRefreshCw className="w-5 h-5" />,
     data: "We may update this Privacy Policy from time to time. Changes become effective when posted, and we may notify users through in-product notices or other appropriate communication channels when material updates occur.",
   },
   {
     id: "contact-information",
     title: "Contact Information",
+    icon: <FiMail className="w-5 h-5" />,
     data: "For privacy-related questions, requests, or concerns, please contact our support team.",
     contact: "[Support contact details to be added]",
   },

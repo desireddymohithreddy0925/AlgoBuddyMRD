@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import toast from "react-hot-toast";
 import { AnimatePresence, motion } from "framer-motion";
 import {Award,BarChart3,Briefcase,Calendar,CheckCircle2,Code2,Edit3,Eye,Flame,Folder,Github,Linkedin,Link as LinkIcon,MapPin,Medal,Save,  ShieldCheck,Trophy,User,X,} from "lucide-react";
@@ -35,6 +34,8 @@ const heatLevelClass = {
 const AVATAR_BUCKET = "avatars";
 const MAX_AVATAR_FILE_SIZE = 2 * 1024 * 1024;
 const MAX_AVATAR_URL_LENGTH = 512;
+const MAX_PROFILE_URL_LENGTH = 512;
+const PROFILE_URL_FIELDS = ["resume_link", "github_profile", "linkedin_profile"];
 
 const allPracticeProblems = practiceData.flatMap((topic) =>
   topic.subsections.flatMap((section) =>
@@ -69,6 +70,32 @@ const safeAvatarUrl = (value) => {
   if (value.startsWith("data:")) return "";
   if (value.length > MAX_AVATAR_URL_LENGTH) return "";
   return value;
+};
+
+const safeExternalUrl = (value) => {
+  if (typeof value !== "string" || value.length > MAX_PROFILE_URL_LENGTH) return "";
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return "";
+    return parsed.toString();
+  } catch {
+    return "";
+  }
+};
+
+const sanitizeProfileLinks = (data) => {
+  const nextData = { ...data };
+
+  for (const field of PROFILE_URL_FIELDS) {
+    if (!nextData[field]) continue;
+    const safeUrl = safeExternalUrl(nextData[field]);
+    if (!safeUrl) {
+      return { error: "Please enter valid http or https URLs for profile links." };
+    }
+    nextData[field] = safeUrl;
+  }
+
+  return { data: nextData };
 };
 
 function LeetCodeIcon() {
@@ -147,7 +174,7 @@ export default function ProfilePage() {
       setFormData({
         name: meta.name || "",
         branch: meta.branch || "",
-        location: meta.location || meta.address || "Uttarakhand, India",
+        location: meta.location || meta.address || "",
         skills: meta.skills || "",
         resume_link: meta.resume_link || "",
         github_profile: meta.github_profile || "",
@@ -241,7 +268,7 @@ export default function ProfilePage() {
     [arenaProfile?.battlesWon, arenaProfile?.rank, realStats.solvedCount, recentlyViewed.length, streakData?.current]
   );
 
-  const displayName = formData.name || user?.user_metadata?.name || "Pankaj Singh";
+  const displayName = formData.name || user?.user_metadata?.name || user?.email?.split('@')[0] || "User";
   const initials = displayName
     .split(" ")
     .map((part) => part[0])
@@ -250,12 +277,11 @@ export default function ProfilePage() {
     .toUpperCase();
   const handle = formData.github_profile
     ? `@${formData.github_profile.replace(/\/$/, "").split("/").pop()}`
-    : "@pankaj_codes";
-  const branch = formData.branch || "CSE Student";
-  const location = formData.location || "Uttarakhand, India";
-  const bio =
-    formData.skills ||
-    "Passionate about DSA, Problem Solving and Building things that make an impact.";
+    : `@${user?.email?.split('@')[0] || "user"}`;
+  const branch = formData.branch || "Add your branch";
+  const location = formData.location || "Add your location";
+  const bio = formData.skills || "No bio provided.";
+  const joinedDate = user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : "Recently";
   const arenaLevel = arenaProfile?.level || Math.max(1, Math.floor(realStats.solvedCount / 25) + 1);
   const arenaXp = arenaProfile?.xp || realStats.solvedCount * 10;
   const xpStep = 1000;
@@ -446,16 +472,23 @@ export default function ProfilePage() {
 
     console.log("Saving:", formData);
 
+    const sanitized = sanitizeProfileLinks(formData);
+    if (sanitized.error) {
+      toast.error(sanitized.error);
+      return;
+    }
+
     setSaving(true);
 
     try {
-      const { data, error } = await supabase.auth.updateUser({ data: formData });
+      const { data, error } = await supabase.auth.updateUser({ data: sanitized.data });
 
       console.log("Updated user:", data?.user?.user_metadata);
 
       if (error) throw error;
 
       setUser(data.user);
+      setFormData(sanitized.data);
       setIsEditOpen(false);
       toast.success("Profile updated successfully");
     } catch (error) {
@@ -548,7 +581,7 @@ export default function ProfilePage() {
                 </span>
                 <span className="inline-flex items-center gap-1.5">
                   <Calendar className="h-4 w-4" />
-                  Joined Jan 2024
+                  Joined {joinedDate}
                 </span>
               </div>
 
@@ -556,22 +589,30 @@ export default function ProfilePage() {
                 {bio}
               </p>
 
-              <div className="mt-5 flex gap-3">
-                {[
-                  [Github, formData.github_profile || "#", "GitHub"],
-                  [Linkedin, formData.linkedin_profile || "#", "LinkedIn"],
-                  [LinkIcon, formData.resume_link || "#", "Resume"],
-                ].map(([Icon, href, label]) => (
-                  <Link
-                    key={label}
-                    href={href}
-                    aria-label={label}
-                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-[#111331] shadow-sm transition hover:border-violet-200 hover:text-violet-600 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:hover:border-violet-500 dark:hover:text-violet-300"
-                  >
-                    <Icon className="h-4 w-4" />
-                  </Link>
-                ))}
-              </div>
+              {[
+                [Github, safeExternalUrl(formData.github_profile), "GitHub"],
+                [Linkedin, safeExternalUrl(formData.linkedin_profile), "LinkedIn"],
+                [LinkIcon, safeExternalUrl(formData.resume_link), "Resume"],
+              ].some(([, href]) => href) && (
+                <div className="mt-5 flex gap-3">
+                  {[
+                    [Github, safeExternalUrl(formData.github_profile), "GitHub"],
+                    [Linkedin, safeExternalUrl(formData.linkedin_profile), "LinkedIn"],
+                    [LinkIcon, safeExternalUrl(formData.resume_link), "Resume"],
+                  ].filter(([, href]) => href).map(([Icon, href, label]) => (
+                    <a
+                      key={label}
+                      href={href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={label}
+                      className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-[#111331] shadow-sm transition hover:border-violet-200 hover:text-violet-600 dark:border-neutral-700 dark:bg-neutral-950 dark:text-neutral-100 dark:hover:border-violet-500 dark:hover:text-violet-300"
+                    >
+                      <Icon className="h-4 w-4" />
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -823,10 +864,10 @@ export default function ProfilePage() {
 
               <div className="grid gap-4 px-6 py-5 sm:grid-cols-2">
                 {[
-                  ["name", "Full Name", "Pankaj Singh", User],
-                  ["branch", "Branch", "CSE Student", ShieldCheck],
-                  ["location", "Location", "Uttarakhand, India", MapPin],
-                  ["skills", "Bio", "Passionate about DSA...", Code2],
+                  ["name", "Full Name", "John Doe", User],
+                  ["branch", "Branch", "Computer Science", ShieldCheck],
+                  ["location", "Location", "City, Country", MapPin],
+                  ["skills", "Bio", "Software Engineer passionate about...", Code2],
                   ["github_profile", "GitHub URL", "https://github.com/...", Github],
                   ["linkedin_profile", "LinkedIn URL", "https://linkedin.com/in/...", Linkedin],
                   ["resume_link", "Resume URL", "https://drive.google.com/...", Briefcase],

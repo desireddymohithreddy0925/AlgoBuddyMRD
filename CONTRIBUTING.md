@@ -9,7 +9,7 @@ We welcome and appreciate contributions from the community to help make this pro
 
 ---
 
-## â†ªï¸ Table of Contents
+## ↪️Table of Contents
 
 - [Contribution Areas](#️-contribution-areas)
 - [Tech Stack](#️-tech-stack)
@@ -22,7 +22,7 @@ We welcome and appreciate contributions from the community to help make this pro
 
 ---
 
-# â†ªï¸ Contribution Areas
+# ↪️ Contribution Areas
 
 We accept contributions in the following areas:
 
@@ -39,7 +39,7 @@ Feel free to suggest new contribution ideas by opening an issue first.
 
 ---
 
-# â†ªï¸ Tech Stack
+# ↪️ Tech Stack
 
 | Layer     | Technology                                         |
 | --------- | -------------------------------------------------- |
@@ -55,7 +55,7 @@ Feel free to suggest new contribution ideas by opening an issue first.
 
 ---
 
-# â†ªï¸ Getting Started
+# ↪️ Getting Started
 
 Follow these steps to set up the project locally.
 
@@ -120,7 +120,7 @@ The application will start locally at `http://localhost:3000`.
 
 ---
 
-# â†ªï¸ Development Workflow
+# ↪️ Development Workflow
 
 Follow the workflow below while contributing to the project.
 
@@ -218,7 +218,7 @@ To ensure fair and efficient issue management, please follow these steps:
 
 ---
 
-# â†ªï¸ Pull Request Guidelines
+# ↪️ Pull Request Guidelines
 
 Before submitting a PR:
 
@@ -232,7 +232,7 @@ Before submitting a PR:
 
 ---
 
-# â†ªï¸ Reporting Issues
+# ↪️ Reporting Issues
 
 When creating issues, please include:
 
@@ -244,7 +244,7 @@ When creating issues, please include:
 
 ---
 
-# â†ªï¸ Need Help?
+# ↪️ Need Help?
 
 If you need help while contributing:
 
@@ -256,8 +256,8 @@ We're happy to help new contributors!
 
 ---
 
-# â†ªï¸ Thank You
+# ↪️ Thank You
 
-Thank you for contributing to AlgoBuddy ðŸ’™
+Thank you for contributing to AlgoBuddy 💙
 
 Your contributions help make learning Data Structures & Algorithms more interactive and accessible for everyone.

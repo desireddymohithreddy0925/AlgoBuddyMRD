@@ -53,6 +53,36 @@ export async function GET(req) {
           .eq("id", msg.id);
           
         processedCount++;
+      } else if (msg.type === "review") {
+        const { name, email, review, rating } = msg.payload;
+        const inboxEmail = process.env.REVIEW_INBOX_EMAIL || process.env.EMAIL_USER;
+
+        const escapeHtml = (value) => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+        
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          replyTo: email,
+          to: inboxEmail,
+          subject: `[DELAYED] New Review Submission from ${name}`,
+          html: `
+        <h2>New Review Received (Delayed)</h2>
+        <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+        <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+        <p><strong>Rating:</strong> ${"★".repeat(rating)}${"☆".repeat(
+          5 - rating
+        )}</p>
+        <p><strong>Review:</strong></p>
+        <p>${escapeHtml(review).replaceAll("\n", "<br>")}</p>
+      `,
+        });
+
+        // Mark as sent
+        await supabase
+          .from("pending_messages")
+          .update({ sent_at: new Date().toISOString() })
+          .eq("id", msg.id);
+          
+        processedCount++;
       }
     }
 

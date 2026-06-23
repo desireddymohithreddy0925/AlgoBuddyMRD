@@ -183,6 +183,7 @@ export function useSheetProgress() {
   const { user } = useUser();
   const [progress, setProgress] = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [streakData, setStreakData] = useState({
     current: 0,
     best: 0,
@@ -284,6 +285,9 @@ export function useSheetProgress() {
         }
       } catch (err) {
         console.error("[useSheetProgress] Server sync failed:", err);
+        if (!cancelled) {
+          setError(err.message || "Failed to load progress");
+        }
       }
 
       if (!cancelled) {
@@ -352,5 +356,5 @@ export function useSheetProgress() {
     [progress]
   );
 
-  return { progress, getStatus, updateProgress, streakData, loading };
+  return { progress, getStatus, updateProgress, streakData, loading, error };
 }

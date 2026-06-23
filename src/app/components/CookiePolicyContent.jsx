@@ -151,7 +151,7 @@ export default function CookiePolicyContent() {
 
       {/* Hero Section */}
       <div className="mb-16 max-w-3xl">
-        <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-bold tracking-[0.15em] uppercase mb-6">
+        <div className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-gray-100 text-gray-600 dark:bg-[#1E1E26] dark:text-gray-300 text-xs font-bold tracking-[0.15em] uppercase mb-6">
           Legal
         </div>
         <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-6">
@@ -199,10 +199,10 @@ export default function CookiePolicyContent() {
             <section 
               key={section.id} 
               id={section.id}
-              className="scroll-mt-24 bg-white dark:bg-[#14141A] p-6 sm:p-8 rounded-2xl border border-gray-200 dark:border-[#2A2A35] transition-all duration-300 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/5 group"
+              className="scroll-mt-24 pb-10 border-b border-gray-200 dark:border-[#2A2A35]"
             >
               <div className="flex items-start mb-4">
-                <div className="w-10 h-10 flex-shrink-0 bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-xl flex items-center justify-center mr-4 mt-0.5 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-10 h-10 flex-shrink-0 bg-gray-100 text-gray-600 dark:bg-[#1E1E26] dark:text-gray-300 rounded-xl flex items-center justify-center mr-4 mt-0.5 group-hover:scale-110 transition-transform duration-300">
                   {section.icon}
                 </div>
                 <div>

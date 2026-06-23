@@ -9,6 +9,7 @@ import com.algobuddy.backend.repository.UserPracticeStatsRepository;
 import com.algobuddy.backend.repository.UserProgressRepository;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +30,7 @@ public class PracticeService {
 
 
     @Transactional(readOnly = true)
-    public ProgressResponse getUserProgress(UUID userId) {
+    public ProgressResponse getUserProgress(@NonNull UUID userId) {
         List<UserProgress> progressList = progressRepository.findByUserId(userId);
         
         Map<String, ProgressResponse.ProgressDetail> progressMap = progressList.stream()
@@ -62,7 +63,7 @@ public class PracticeService {
     }
 
     @Transactional
-    public ProgressResponse updateProgress(UUID userId, ProgressRequest request) {
+    public ProgressResponse updateProgress(@NonNull UUID userId, ProgressRequest request) {
         progressRepository.upsertProgress(userId, request.getProblemId(), request.getStatus());
 
         if ("Completed".equals(request.getStatus())) {
@@ -73,7 +74,7 @@ public class PracticeService {
     }
 
     @Transactional
-    public ProgressResponse bulkUpdateProgress(UUID userId, BulkProgressRequest request) {
+    public ProgressResponse bulkUpdateProgress(@NonNull UUID userId, BulkProgressRequest request) {
         if (request.getItems() == null || request.getItems().isEmpty()) {
             return getUserProgress(userId);
         }
@@ -124,7 +125,7 @@ public class PracticeService {
     }
 
     @Transactional
-    public void updateStreak(UUID userId) {
+    public void updateStreak(@NonNull UUID userId) {
         statsRepository.acquireStreakUpdateLock(userId);
         statsRepository.upsertStreakAtomic(userId, LocalDate.now());
     }
