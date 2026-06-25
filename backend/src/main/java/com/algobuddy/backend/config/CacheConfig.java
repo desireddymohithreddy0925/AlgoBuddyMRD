@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.time.Duration;
 
@@ -25,7 +26,8 @@ import java.time.Duration;
 public class CacheConfig {
 
     @Bean
-    public CacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
+    @ConditionalOnProperty(name = "app.cache.redis.enabled", havingValue = "true")
+    public CacheManager redisCacheManager(RedisConnectionFactory redisConnectionFactory) {
         RedisCacheConfiguration defaults = RedisCacheConfiguration.defaultCacheConfig()
             .entryTtl(Duration.ofMinutes(30))
             .disableCachingNullValues();
@@ -45,5 +47,13 @@ public class CacheConfig {
                 RedisCacheConfiguration.defaultCacheConfig()
                     .entryTtl(Duration.ofMinutes(60)))
             .build();
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "app.cache.redis.enabled", havingValue = "false", matchIfMissing = true)
+    public CacheManager simpleCacheManager() {
+        return new org.springframework.cache.concurrent.ConcurrentMapCacheManager(
+            "arenaProfile", "arenaLeaderboard", "mysheet", "bookmarks"
+        );
     }
 }
