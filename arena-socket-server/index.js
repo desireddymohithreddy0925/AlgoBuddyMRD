@@ -9,6 +9,34 @@ const redisUrl = process.env.REDIS_URL;
 const Redis = redisUrl ? require("ioredis") : require("ioredis-mock");
 const { createAdapter } = require("@socket.io/redis-adapter");
 
+class BoundedMap {
+  constructor(maxSize = 10000) {
+    this.maxSize = maxSize;
+    this._map = new Map();
+  }
+  get(key) {
+    return this._map.get(key);
+  }
+  set(key, value) {
+    if (this._map.has(key)) {
+      this._map.delete(key);
+    } else if (this._map.size >= this.maxSize) {
+      const oldest = this._map.keys().next().value;
+      if (oldest !== undefined) this._map.delete(oldest);
+    }
+    this._map.set(key, value);
+  }
+  delete(key) {
+    return this._map.delete(key);
+  }
+  entries() {
+    return this._map.entries();
+  }
+  get size() {
+    return this._map.size;
+  }
+}
+
 const app = express();
 const ALLOWED_ORIGINS = [
   "http://localhost:3000",
@@ -230,6 +258,14 @@ const io = new Server(server, {
   adapter: createAdapter(pubClient, subClient)
 });
 
+io.use((socket, next) => {
+  const ip = socket.handshake.address;
+  if (isConnectionRateLimited(ip)) {
+    return next(new Error("Rate limited"));
+  }
+  next();
+});
+
 const PORT = process.env.PORT || 4000;
 
 // JWT Authentication
@@ -267,7 +303,7 @@ function verifyAuthToken(token) {
 }
 
 // Connection rate limiting to prevent JWT brute-forcing
-const connectionAttempts = new Map();
+const connectionAttempts = new BoundedMap(10000);
 const MAX_CONNECTION_ATTEMPTS = 5;
 const CONNECTION_ATTEMPT_WINDOW_MS = 60000;
 
@@ -281,16 +317,6 @@ function isConnectionRateLimited(ip) {
   entry.count++;
   return entry.count > MAX_CONNECTION_ATTEMPTS;
 }
-
-// Cleanup interval to prevent memory leaks in connection rate limiter
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, entry] of connectionAttempts.entries()) {
-    if (now > entry.resetTime) {
-      connectionAttempts.delete(ip);
-    }
-  }
-}, CONNECTION_ATTEMPT_WINDOW_MS);
 
 // Periodic queue health checker to remove stale entries from matchmaking queues
 setInterval(async () => {
@@ -751,7 +777,7 @@ async function getRedisAggregateStats() {
 }
 
 // Rate limiter for debug endpoint to prevent brute-force discovery of debug key
-const debugRequestCounts = new Map();
+const debugRequestCounts = new BoundedMap(10000);
 
 function isDebugRateLimited(ip) {
   const now = Date.now();
@@ -765,16 +791,6 @@ function isDebugRateLimited(ip) {
   entry.count++;
   return entry.count > maxRequests;
 }
-
-// Cleanup interval for debug rate limiter
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, entry] of debugRequestCounts.entries()) {
-    if (now > entry.resetTime) {
-      debugRequestCounts.delete(ip);
-    }
-  }
-}, 60000);
 
 app.get("/debug", async (req, res) => {
   try {
