@@ -48,23 +48,43 @@ export default function QuizPage() {
               </button>
             </Link>
           </div>
+
           {/* Bubble Sort Quiz */}
 
-<Link href="/visualizer/array/bubblesort/quiz">
-  <div className="rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm hover:shadow-lg transition-all">
-    <h2 className="text-2xl font-semibold mb-3">
-      📘 Bubble Sort Quiz
-    </h2>
+          <Link href="/visualizer/array/bubblesort/quiz">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm hover:shadow-lg transition-all">
+              <h2 className="text-2xl font-semibold mb-3">
+                📘 Bubble Sort Quiz
+              </h2>
 
-    <p className="text-gray-600 dark:text-gray-400 mb-6">
-      Test your understanding of Bubble Sort with multiple-choice questions.
-    </p>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Test your understanding of Bubble Sort with multiple-choice questions.
+              </p>
 
-    <button className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg">
-      Start Quiz
-    </button>
-  </div>
-</Link>
+              <button className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg">
+                Start Quiz
+              </button>
+            </div>
+          </Link>
+
+          {/* Selection Sort Quiz */}
+          
+          <Link href="/visualizer/array/selectionsort/quiz">
+            <div className="rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm hover:shadow-lg transition-all">
+              <h2 className="text-2xl font-semibold mb-3">
+                📘 Selection Sort Quiz
+              </h2>
+
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Test your understanding of Selection Sort with multiple-choice questions.
+              </p>
+
+              <button className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2 rounded-lg">
+                Start Quiz
+              </button>
+            </div>
+          </Link>
+          
 
         </div>
       </div>
