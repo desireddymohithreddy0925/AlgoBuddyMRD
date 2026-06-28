@@ -132,6 +132,13 @@ export default function QuizPage() {
       href: "/visualizer/recursion/binary-search/quiz",
       color: "bg-blue-700 hover:bg-blue-800",
     },
+    {
+      title: "Tower of Hanoi Recursion Quiz",
+      description:
+        "Test your understanding of the Tower of Hanoi recursion algorithm with multiple-choice questions.",
+      href: "/visualizer/recursion/tower-of-hanoi/quiz",
+      color: "bg-violet-600 hover:bg-violet-700",
+    },
   ];
 
   const [searchQuery, setSearchQuery] = useState("");
