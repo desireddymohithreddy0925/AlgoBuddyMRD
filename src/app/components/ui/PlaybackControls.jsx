@@ -84,7 +84,10 @@ export default function PlaybackControls({
           {onReset && (
             <button
               type="button"
-              onClick={onReset}
+              onClick={() => {
+                onReset();
+                window.dispatchEvent(new CustomEvent('visualizer-reset'));
+              }}
               disabled={disabled}
               aria-label="Reset visualization to initial state"
               className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ml-1 focus:outline-none focus:ring-2 focus:ring-[#a435f0] focus:ring-offset-2 focus:ring-offset-slate-900"

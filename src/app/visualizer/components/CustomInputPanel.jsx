@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AlertCircle, RefreshCw, Check } from "lucide-react";
 
 const INPUT_PARSERS = {
@@ -56,6 +56,17 @@ export function CustomInputPanel({ inputType, onApply, currentData }) {
   const [value, setValue] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    const handleGlobalReset = () => {
+      setValue("");
+      setError("");
+      setSuccess(false);
+      onApply(null);
+    };
+    window.addEventListener("visualizer-reset", handleGlobalReset);
+    return () => window.removeEventListener("visualizer-reset", handleGlobalReset);
+  }, [onApply]);
 
   const parser = INPUT_PARSERS[inputType] || INPUT_PARSERS.array;
 
