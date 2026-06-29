@@ -1,6 +1,7 @@
 require("dotenv").config({ path: '../.env.local' });
 const express = require("express");
 const http = require("http");
+const crypto = require("crypto");
 const { Server } = require("socket.io");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
@@ -88,6 +89,9 @@ const redisClient = pubClient.duplicate();
 
 // Phase 1: Atomically pop an opponent from the queue WITHOUT creating match state
 const ATOMIC_POP_OPPONENT_SCRIPT = `
+  local function sanitize(str)
+    return string.gsub(string.gsub(str, '\\\\', '\\\\\\\\'), '"', '\\\\"')
+  end
   local queueKey = KEYS[1]
   local socketKey = KEYS[2]
   local entry = ARGV[1]
@@ -130,7 +134,7 @@ const ATOMIC_POP_OPPONENT_SCRIPT = `
         redis.call('RPUSH', queueKey, skipList[i])
       end
       redis.call('HSET', socketKey, 'queueKey', queueKey)
-      return '{"status":"MATCH_FOUND","opponent":{"userId":"' .. oppUserId .. '","socketId":"' .. oppSocketId .. '","name":"' .. oppName .. '","rating":' .. oppRating .. ',"level":' .. oppLevel .. '}}'
+      return '{"status":"MATCH_FOUND","opponent":{"userId":"' .. sanitize(oppUserId) .. '","socketId":"' .. sanitize(oppSocketId) .. '","name":"' .. sanitize(oppName) .. '","rating":' .. oppRating .. ',"level":' .. oppLevel .. '}}'
     end
   end
 
@@ -199,6 +203,9 @@ const ATOMIC_LEAVE_MATCHMAKING_SCRIPT = `
 // without race conditions. Using a single script eliminates the TOCTOU gap
 // between separate disconnect and complete scripts.
 const ATOMIC_MATCH_UPDATE_SCRIPT = `
+  local function sanitize(str)
+    return string.gsub(string.gsub(str, '\\\\', '\\\\\\\\'), '"', '\\\\"')
+  end
   local matchKey = KEYS[1]
   local action = ARGV[1]
   local actorUserId = ARGV[2]
@@ -218,9 +225,9 @@ const ATOMIC_MATCH_UPDATE_SCRIPT = `
     -- Mark as completed with winner
     local updated = string.gsub(matchStr, '"status"%s*:%s*"[^"]+"', '"status":"completed"')
     if string.find(updated, '"winnerId"') then
-      updated = string.gsub(updated, '"winnerId"%s*:%s*"[^"]+"', '"winnerId":"' .. actorUserId .. '"')
+      updated = string.gsub(updated, '"winnerId"%s*:%s*"[^"]+"', '"winnerId":"' .. sanitize(actorUserId) .. '"')
     else
-      updated = string.gsub(updated, '}%s*$', ',"winnerId":"' .. actorUserId .. '"}')
+      updated = string.gsub(updated, '}%s*$', ',"winnerId":"' .. sanitize(actorUserId) .. '"}')
     end
     redis.call('SET', matchKey, updated, 'EX', 3600)
     -- Extract opponent socketId for notification (match userId, not socketId)
@@ -230,7 +237,7 @@ const ATOMIC_MATCH_UPDATE_SCRIPT = `
         opponentSocketId = sId
       end
     end
-    return '{"status":"completed","winnerId":"' .. actorUserId .. '","opponentSocketId":"' .. opponentSocketId .. '"}'
+    return '{"status":"completed","winnerId":"' .. sanitize(actorUserId) .. '","opponentSocketId":"' .. sanitize(opponentSocketId) .. '"}'
 
   elseif action == "disconnect" then
     -- Set disconnected — the remaining player claims win via match_complete
@@ -245,7 +252,7 @@ const ATOMIC_MATCH_UPDATE_SCRIPT = `
         opponentSocketId = sId
       end
     end
-    return '{"status":"disconnected","opponentSocketId":"' .. opponentSocketId .. '","opponentUserId":"' .. opponentUserId .. '"}'
+    return '{"status":"disconnected","opponentSocketId":"' .. sanitize(opponentSocketId) .. '","opponentUserId":"' .. sanitize(opponentUserId) .. '"}'
   end
   return '{"status":"unknown_action"}'
 `;
@@ -396,21 +403,29 @@ async function isRateLimited(userId) {
   return result === 1;
 }
 
+// Spectator rate limiting to prevent chat spam
+const spectatorRateLimit = new BoundedMap(5000);
+
+function isSpectatorRateLimited(userId) {
+  const key = `chat:${userId}`;
+  const entry = spectatorRateLimit.get(key);
+  if (!entry || Date.now() > entry.resetTime) {
+    spectatorRateLimit.set(key, { count: 1, resetTime: Date.now() + 10000 });
+    return false;
+  }
+  entry.count++;
+  return entry.count > 5;
+}
+
 io.on("connection", async (socket) => {
   // Verify Supabase JWT from handshake auth using JWKS
   const token = socket.handshake.auth?.token;
   const authPayload = await verifyAuthToken(token);
   
   if (!authPayload) {
-    const queryUserId = socket.handshake.query?.userId;
-    if (queryUserId && queryUserId.startsWith("spectator_")) {
-      socket.data.userId = queryUserId;
-      console.log(`Spectator connected: ${socket.id}, userId: ${socket.data.userId}`);
-    } else {
-      socket.emit("error", { message: "Authentication required. Please sign in again." });
-      socket.disconnect(true);
-      return;
-    }
+    socket.data.userId = `spectator_${crypto.randomUUID()}`;
+    socket.data.isSpectator = true;
+    console.log(`Spectator connected: ${socket.id}`);
   } else {
     // Store verified userId from the JWT payload
     socket.data.userId = authPayload.sub || authPayload.id;
@@ -648,16 +663,21 @@ io.on("connection", async (socket) => {
 
   socket.on("spectator_chat", (data) => {
     if (!data.matchId || !data.message) return;
+    if (isSpectatorRateLimited(socket.data.userId)) return;
+    if (/<[^>]*>/.test(data.message)) return;
+    if (data.message.length > 500) return;
+    const safeUsername = `Spectator_${socket.id.slice(0, 6)}`;
     socket.to(data.matchId).emit("spectator_chat", {
       userId: socket.data.userId,
-      username: socket.handshake.query.username || "Spectator",
-      message: data.message,
+      username: safeUsername,
+      message: data.message.slice(0, 500),
       timestamp: Date.now()
     });
   });
 
   socket.on("spectator_emote", (data) => {
     if (!data.matchId || !data.emote) return;
+    if (isSpectatorRateLimited(socket.data.userId)) return;
     socket.to(data.matchId).emit("spectator_emote", {
       userId: socket.data.userId,
       emote: data.emote,
