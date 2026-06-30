@@ -54,11 +54,18 @@ export default function TreeHeapVisualizer({ initialHeapType = "min" }) {
   const [isAnimating, setIsAnimating] = useState(false);
   const [message, setMessage] = useState("Build or insert values to start.");
   const timerRef = useRef(null);
+  const lockRef = useRef(false);
+  const stepIdxRef = useRef(currentStepIdx);
+  const isAnimatingRef = useRef(isAnimating);
   const { speed, setSpeed } = usePlayback(1);
+
+  useEffect(() => { stepIdxRef.current = currentStepIdx; }, [currentStepIdx]);
+  useEffect(() => { isAnimatingRef.current = isAnimating; }, [isAnimating]);
 
   const resetPlayback = useCallback(() => {
     setIsAnimating(false);
     if (timerRef.current) clearTimeout(timerRef.current);
+    lockRef.current = false;
     setSteps([]);
     setCurrentStepIdx(-1);
   }, []);
@@ -142,25 +149,31 @@ export default function TreeHeapVisualizer({ initialHeapType = "min" }) {
   const pauseVisualizer = useCallback(() => {
     setIsAnimating(false);
     if (timerRef.current) clearTimeout(timerRef.current);
+    lockRef.current = false;
   }, []);
 
   const stepForward = useCallback(() => {
+    if (lockRef.current) return;
     setIsAnimating(false);
-    if (currentStepIdx < steps.length - 1) {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (stepIdxRef.current < steps.length - 1) {
       setCurrentStepIdx((prev) => prev + 1);
     }
-  }, [currentStepIdx, steps.length]);
+  }, [steps.length]);
 
   const stepBackward = useCallback(() => {
+    if (lockRef.current) return;
     setIsAnimating(false);
-    if (currentStepIdx > 0) {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (stepIdxRef.current > 0) {
       setCurrentStepIdx((prev) => prev - 1);
     }
-  }, [currentStepIdx]);
+  }, []);
 
   const handleResetPlayback = useCallback(() => {
     setIsAnimating(false);
     if (timerRef.current) clearTimeout(timerRef.current);
+    lockRef.current = false;
     setSteps([]);
     setCurrentStepIdx(-1);
     setMessage("Playback reset.");
@@ -176,7 +189,7 @@ export default function TreeHeapVisualizer({ initialHeapType = "min" }) {
   }, [isMinHeap, resetPlayback]);
 
   useEffect(() => {
-    if (!isAnimating || steps.length === 0) return;
+    if (!isAnimating || steps.length === 0 || lockRef.current) return;
 
     if (currentStepIdx >= steps.length) {
       setIsAnimating(false);
@@ -186,8 +199,11 @@ export default function TreeHeapVisualizer({ initialHeapType = "min" }) {
     const currentStep = steps[currentStepIdx];
     setMessage(currentStep.explanation);
 
+    lockRef.current = true;
+
     timerRef.current = setTimeout(() => {
-      if (currentStepIdx < steps.length - 1) {
+      lockRef.current = false;
+      if (stepIdxRef.current < steps.length - 1) {
         setCurrentStepIdx((prev) => prev + 1);
       } else {
         setIsAnimating(false);

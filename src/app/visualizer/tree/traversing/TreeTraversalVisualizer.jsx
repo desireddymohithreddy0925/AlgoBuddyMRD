@@ -250,7 +250,12 @@ export default function TreeTraversalVisualizer({ initialMode = 'in-order' }) {
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   
   const timerRef = useRef(null);
+  const lockRef = useRef(false);
+  const stepIdxRef = useRef(currentStepIdx);
+  const isAnimatingRef = useRef(isAnimating);
 
+  useEffect(() => { stepIdxRef.current = currentStepIdx; }, [currentStepIdx]);
+  useEffect(() => { isAnimatingRef.current = isAnimating; }, [isAnimating]);
 
   // Sync mode changes
   useEffect(() => {
@@ -367,9 +372,9 @@ export default function TreeTraversalVisualizer({ initialMode = 'in-order' }) {
     setCurrentStepIdx(nextIdx);
   };
 
-  // Animation effect loop
+  // Animation effect loop with lock guard
   useEffect(() => {
-    if (!isAnimating || steps.length === 0) return;
+    if (!isAnimating || steps.length === 0 || lockRef.current) return;
     
     if (currentStepIdx >= steps.length) {
       setIsAnimating(false);
@@ -379,9 +384,12 @@ export default function TreeTraversalVisualizer({ initialMode = 'in-order' }) {
     const currentStep = steps[currentStepIdx];
     setMessage(currentStep.explanation);
 
+    lockRef.current = true;
+
     // Schedule next step
     timerRef.current = setTimeout(() => {
-      if (currentStepIdx < steps.length - 1) {
+      lockRef.current = false;
+      if (stepIdxRef.current < steps.length - 1) {
         setCurrentStepIdx(prev => prev + 1);
       } else {
         setIsAnimating(false);
@@ -398,26 +406,31 @@ export default function TreeTraversalVisualizer({ initialMode = 'in-order' }) {
   const pauseVisualizer = () => {
     setIsAnimating(false);
     if (timerRef.current) clearTimeout(timerRef.current);
+    lockRef.current = false;
   };
 
   // Next Step
   const stepForward = () => {
+    if (lockRef.current) return;
     setIsAnimating(false);
+    if (timerRef.current) clearTimeout(timerRef.current);
     let preCalculated = steps;
     if (steps.length === 0) {
       preCalculated = preCalculateSteps();
       setSteps(preCalculated);
     }
     
-    if (currentStepIdx < preCalculated.length - 1) {
+    if (stepIdxRef.current < preCalculated.length - 1) {
       setCurrentStepIdx(prev => prev + 1);
     }
   };
 
   // Prev Step
   const stepBackward = () => {
+    if (lockRef.current) return;
     setIsAnimating(false);
-    if (currentStepIdx > 0) {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    if (stepIdxRef.current > 0) {
       setCurrentStepIdx(prev => prev - 1);
     }
   };
@@ -426,6 +439,7 @@ export default function TreeTraversalVisualizer({ initialMode = 'in-order' }) {
   function resetPlayback() {
     setIsAnimating(false);
     if (timerRef.current) clearTimeout(timerRef.current);
+    lockRef.current = false;
     setCurrentStepIdx(-1);
     setSteps([]);
     setMessage('Playback reset. Click Start Traversal to begin.');
@@ -579,6 +593,7 @@ export default function TreeTraversalVisualizer({ initialMode = 'in-order' }) {
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      lockRef.current = false;
     };
   }, []);
 

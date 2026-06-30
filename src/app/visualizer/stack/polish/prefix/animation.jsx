@@ -55,9 +55,18 @@ const InfixToPrefixVisualizer = () => {
   const [message, setMessage] = useState("Enter an infix expression and click Convert");
   const [isPlaying, setIsPlaying] = useState(false);
   const { speed, setSpeed } = usePlayback(1);
+  const timerRef = useRef(null);
+  const lockRef = useRef(false);
+  const stepIdxRef = useRef(currentStep);
+  const isPlayingRef = useRef(isPlaying);
+
+  useEffect(() => { stepIdxRef.current = currentStep; }, [currentStep]);
+  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
 
   /* ----------  helpers  ---------- */
   const reset = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    lockRef.current = false;
     setStack([]);
     setOutput([]);
     setPrefix("");
@@ -87,27 +96,46 @@ const InfixToPrefixVisualizer = () => {
 
   /* ----------  playback  ---------- */
   const playNextStep = useCallback(() => {
+    if (lockRef.current) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
     setCurrentStep((s) => s + 1);
   }, []);
   const playPrevStep = useCallback(() => {
+    if (lockRef.current) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
     setCurrentStep((s) => (s > 0 ? s - 1 : s));
   }, []);
-  const togglePlayPause = useCallback(() => setIsPlaying((p) => !p), []);
+  const togglePlayPause = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    lockRef.current = false;
+    setIsPlaying((p) => !p);
+  }, []);
   const jumpToStep = useCallback((idx) => {
+    if (lockRef.current) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    lockRef.current = false;
     setCurrentStep(idx);
     if (idx === steps.length - 1) setIsPlaying(false);
   }, [steps.length]);
 
   useEffect(() => {
     let t;
-    if (isPlaying && currentStep < steps.length - 1) t = setTimeout(playNextStep, 1000 / speed);
+    if (isPlaying && currentStep < steps.length - 1 && !lockRef.current) {
+      lockRef.current = true;
+      t = setTimeout(() => {
+        lockRef.current = false;
+        setCurrentStep((s) => s + 1);
+      }, 1000 / speed);
+    }
     else if (currentStep >= steps.length - 1) setIsPlaying(false);
-    return () => clearTimeout(t);
-  }, [isPlaying, currentStep, steps.length, speed, playNextStep]);
+    return () => { if (t) clearTimeout(t); lockRef.current = false; };
+  }, [isPlaying, currentStep, steps.length, speed]);
 
   /* ----------  GSAP flash on message change  ---------- */
   const statusRef = useRef();
   useVisualizerReset(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    lockRef.current = false;
     setInfix("(A+B)*C");
     setPrefix("");
     setStack([]);
