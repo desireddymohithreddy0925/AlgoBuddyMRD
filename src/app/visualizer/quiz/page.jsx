@@ -13,60 +13,10 @@ export default function QuizPage() {
       color: "bg-cyan-600 hover:bg-cyan-700",
     },
     {
-      title: "Bubble Sort Quiz",
-      description:
-        "Test your understanding of Bubble Sort with multiple-choice questions.",
-      href: "/visualizer/array/bubblesort/quiz",
-      color: "bg-green-600 hover:bg-green-700",
-    },
-    {
-      title: "Selection Sort Quiz",
-      description:
-        "Test your understanding of Selection Sort with multiple-choice questions.",
-      href: "/visualizer/array/selectionsort/quiz",
-      color: "bg-orange-500 hover:bg-orange-600",
-    },
-    {
-      title: "Insertion Sort Quiz",
-      description:
-        "Test your understanding of Insertion Sort with multiple-choice questions.",
-      href: "/visualizer/array/insertionsort/quiz",
-      color: "bg-pink-600 hover:bg-pink-700",
-    },
-    {
-      title: "Merge Sort Quiz",
-      description:
-        "Test your understanding of Merge Sort with multiple-choice questions.",
-      href: "/visualizer/array/mergesort/quiz",
+      title: "Sorting Quiz",
+      description: "Practice all sorting algorithms including Bubble, Selection, Insertion, Merge, Quick, Heap, Radix, and Counting Sort.",
+      href: "/visualizer/array/sorting/quiz",
       color: "bg-indigo-600 hover:bg-indigo-700",
-    },
-    {
-      title: "Quick Sort Quiz",
-      description:
-        "Test your understanding of Quick Sort with multiple-choice questions.",
-      href: "/visualizer/array/quicksort/quiz",
-      color: "bg-red-600 hover:bg-red-700",
-    },
-    {
-      title: "Heap Sort Quiz",
-      description:
-        "Test your understanding of Heap Sort with multiple-choice questions.",
-      href: "/visualizer/array/heapsort/quiz",
-      color: "bg-yellow-600 hover:bg-yellow-700",
-    },
-    {
-        title: "Radix Sort Quiz",
-        description:
-        "Test your understanding of Radix Sort with multiple-choice questions.",
-        href: "/visualizer/array/radixsort/quiz",
-        color: "bg-cyan-600 hover:bg-cyan-700",
-    },
-    {
-        title: "Counting Sort Quiz",
-        description:
-        "Test your understanding of Counting Sort with multiple-choice questions.",
-        href: "/visualizer/array/countingsort/quiz",
-        color: "bg-emerald-600 hover:bg-emerald-700",
     },
     {
       title: "Basic Recursion Quiz",
