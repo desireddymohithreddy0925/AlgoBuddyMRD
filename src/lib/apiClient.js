@@ -58,7 +58,7 @@ class ApiClient {
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    if (res.status === 401 && authRetries < MAX_AUTH_RETRIES) {
+    if (res.status === 401 && path !== "/api/auth" && authRetries < MAX_AUTH_RETRIES) {
       try {
         const { data: { session: newSession } } = await supabase.auth.refreshSession();
         if (newSession) {
