@@ -105,6 +105,24 @@ export default function QuizPage() {
       iconStyle: "bg-fuchsia-500/10 border border-fuchsia-500/20 dark:border-fuchsia-500/30 text-fuchsia-600 dark:text-fuchsia-400",
       btnBg: "bg-fuchsia-600 hover:bg-fuchsia-700 dark:bg-fuchsia-500 dark:hover:bg-fuchsia-600",
     },
+    {
+      title: "Queue Types Quiz",
+      description:
+        "Practice Single Ended Queue, Double Ended Queue, Circular Queue, and Priority Queue concepts.",
+      href: "/visualizer/queue/types/quiz",
+      icon: Layers,
+      filename: "queue_types_quiz.js",
+
+      cardBorder: "border-orange-500/20 dark:border-orange-500/30",
+
+      topBarBg: "bg-orange-500/10 dark:bg-orange-500/20",
+
+      iconStyle:
+        "bg-orange-500/10 border border-orange-500/20 dark:border-orange-500/30 text-orange-600 dark:text-orange-400",
+
+      btnBg:
+        "bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600",
+    }
   ];
 
   return (
