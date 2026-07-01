@@ -167,7 +167,24 @@ export default function QuizPage() {
 
       btnBg:
         "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600",
-    }
+    },
+    {
+      title: "Linked List Operations Quiz",
+      description:
+        "Practice Linked List operations including Insertion, Deletion, Search, Traversal, Reverse, and Finding Middle Node.",
+      href: "/visualizer/linkedlist/operations/quiz",
+      icon: Layers,
+      filename: "linked_list_operations_quiz.js",
+
+      cardBorder: "border-blue-500/20 dark:border-blue-500/30",
+      topBarBg: "bg-blue-500/10 dark:bg-blue-500/20",
+
+      iconStyle:
+        "bg-blue-500/10 border border-blue-500/20 dark:border-blue-500/30 text-blue-600 dark:text-blue-400",
+
+      btnBg:
+        "bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600",
+    },
   ];
   return (
     <div className="min-h-screen bg-white dark:bg-[#1c1d1f] text-[var(--udemy-text)] dark:text-white transition-colors duration-300 pb-20">

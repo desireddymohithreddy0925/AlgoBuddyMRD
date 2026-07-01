@@ -6,7 +6,7 @@ import {
   isApiRoute,
   CSRF_COOKIE_NAME,
   CSRF_HEADER_NAME,
-} from "@/lib/csrf";
+} from "@/lib/csrfConstants";
 import { validateCsrfTokenEdge } from "@/lib/csrfToken";
 
 const SUPABASE_ENV_ERROR =
