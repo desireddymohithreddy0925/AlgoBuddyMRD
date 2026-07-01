@@ -3,6 +3,7 @@ import { getClientIp } from "@/lib/getClientIp";
 import { verifyTurnstile } from "@/lib/verifyTurnstile";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { validateCsrf } from "@/lib/csrf";
 
 const MAX_MESSAGES_PER_REQUEST = 20;
 const MAX_TOTAL_CHARS = 4000;
@@ -68,6 +69,10 @@ function createGeminiContents(messages) {
 }
 
 export async function POST(req) {
+  if (!validateCsrf(req)) {
+    return Response.json({ error: "Invalid CSRF token" }, { status: 403 });
+  }
+
   try {
     // 1. Parse Request Body
     let body;

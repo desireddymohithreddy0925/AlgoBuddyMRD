@@ -5,6 +5,7 @@ import { Redis } from "@upstash/redis";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getClientIp";
 import { verifyTurnstile } from "@/lib/verifyTurnstile";
+import { validateCsrf } from "@/lib/csrf";
 
 // Service-role client is only used for signup so it can create users regardless
 // of RLS policies. It is never used for login — that goes through the anon client
@@ -131,6 +132,13 @@ function genericAuthError() {
 }
 
 export async function POST(req) {
+  if (!validateCsrf(req)) {
+    return new Response(
+      JSON.stringify({ success: false, message: "Invalid CSRF token" }),
+      { status: 403, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   try {
     let body;
     try {

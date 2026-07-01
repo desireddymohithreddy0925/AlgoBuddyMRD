@@ -2,6 +2,7 @@ import nodemailer from "nodemailer";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getClientIp";
 import { verifyTurnstile } from "@/lib/verifyTurnstile";
+import { validateCsrf } from "@/lib/csrf";
 
 function escapeHtml(value) {
   return String(value)
@@ -18,6 +19,10 @@ function isValidEmail(value) {
 }
 
 export async function POST(req) {
+  if (!validateCsrf(req)) {
+    return Response.json({ error: "Invalid CSRF token" }, { status: 403 });
+  }
+
   try {
     const ip = getClientIp(req.headers);
 

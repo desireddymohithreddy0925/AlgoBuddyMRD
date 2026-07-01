@@ -4,6 +4,7 @@ import {
 } from "@/lib/collaboration/sessionStore";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getClientIp";
+import { validateCsrf } from "@/lib/csrf";
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
@@ -15,6 +16,10 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
+  if (!validateCsrf(request)) {
+    return Response.json({ error: "Invalid CSRF token" }, { status: 403 });
+  }
+
   try {
     const ip = getClientIp(request.headers);
     const { allowed } = await checkRateLimit(`collab:create:${ip}`);

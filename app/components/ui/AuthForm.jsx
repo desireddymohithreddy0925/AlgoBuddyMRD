@@ -10,6 +10,12 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useUser } from "@/app/contexts/UserContext";
 
+function getCsrfToken() {
+  if (typeof document === "undefined") return "";
+  const match = document.cookie.match(/(?:^|;\s*)csrf-token=([^;]*)/);
+  return match ? match[1] : "";
+}
+
 const Turnstile = dynamic(
   () => import("@marsidev/react-turnstile").then((mod) => mod.Turnstile),
   { ssr: false },
@@ -56,7 +62,7 @@ export default function AuthForm({ isLogin = true }) {
       if (isLogin) {
         const res = await fetch("/api/auth", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": getCsrfToken() },
           body: JSON.stringify({
             email,
             password,
@@ -74,7 +80,7 @@ export default function AuthForm({ isLogin = true }) {
       } else {
         const res = await fetch("/api/auth", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": getCsrfToken() },
           body: JSON.stringify({
             email,
             password,

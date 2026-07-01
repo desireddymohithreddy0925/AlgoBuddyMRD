@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { exchangeRealtimeSubscriptionToken } from "@/lib/collaboration/sessionStore";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getClientIp";
+import { validateCsrf } from "@/lib/csrf";
 
 function getSupabaseConfig() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -42,6 +43,10 @@ async function getAuthenticatedUser() {
 }
 
 export async function POST(request, { params }) {
+  if (!validateCsrf(request)) {
+    return Response.json({ error: "Invalid CSRF token" }, { status: 403 });
+  }
+
   const { user, configured } = await getAuthenticatedUser();
   if (configured && !user) {
     return Response.json(

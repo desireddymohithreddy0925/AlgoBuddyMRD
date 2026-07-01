@@ -1,8 +1,13 @@
 import { claimSessionPresenter } from "@/lib/collaboration/sessionStore";
 import { checkRateLimit } from "@/lib/rateLimit";
 import { getClientIp } from "@/lib/getClientIp";
+import { validateCsrf } from "@/lib/csrf";
 
 export async function POST(request, { params }) {
+  if (!validateCsrf(request)) {
+    return Response.json({ error: "Invalid CSRF token" }, { status: 403 });
+  }
+
   const ip = getClientIp(request.headers);
   const { allowed } = await checkRateLimit(`collab:presenter:${ip}:${params.sessionId}`);
   if (!allowed) {
