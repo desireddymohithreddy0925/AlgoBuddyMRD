@@ -212,6 +212,20 @@ export default function QuizPage() {
         "bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600",
     },
     {
+      title: "Tree Traversal Quiz",
+      description:
+        "Practice Pre-order, In-order, Post-order, and Level-order traversal algorithms.",
+      href: "/visualizer/tree/traversing/quiz",
+      filename: "tree_traversal_quiz.js",
+      icon: Layers,
+      cardBorder: "border-lime-500/20 dark:border-lime-500/30",
+      topBarBg: "bg-lime-500/10 dark:bg-lime-500/20",
+      iconStyle:
+        "bg-lime-500/10 border border-lime-500/20 dark:border-lime-500/30 text-lime-600 dark:text-lime-400",
+      btnBg:
+        "bg-lime-600 hover:bg-lime-700 dark:bg-lime-500 dark:hover:bg-lime-600",
+    },
+    {
       title: "Dynamic Programming Quiz",
       description:
         "Test your understanding of DP concepts including Memoization, Tabulation, Knapsack, and LCS.",
