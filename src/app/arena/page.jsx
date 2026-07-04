@@ -1343,7 +1343,7 @@ export default function ArenaPage() {
       <CreateDuelModal
         isOpen={createDuelOpen}
         onClose={closeCreateDuelModal}
-        onLaunch={handleCreateMatchLaunch}
+        onCreateMatch={handleCreateMatchLaunch}
         currentUserStats={currentUserStats}
         initialTopic={duelTopic}
         initialDifficulty={duelDifficulty}
