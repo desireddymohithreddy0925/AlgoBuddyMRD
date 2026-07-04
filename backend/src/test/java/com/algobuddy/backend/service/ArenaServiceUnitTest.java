@@ -125,4 +125,40 @@ public class ArenaServiceUnitTest {
         verify(profileRepository, times(1)).save(any(UserArenaProfile.class));
         verify(profileRepository, times(1)).findProfileWithUserDetails(userId);
     }
+
+    @Test
+    public void testGetProfileRecalculatesRankOnCacheHit() {
+        UUID userId = UUID.randomUUID();
+        
+        ArenaProfileResponse cachedResponse = ArenaProfileResponse.builder()
+                .userId(userId)
+                .xp(1500)
+                .level(2)
+                .rating(1400)
+                .battlesWon(5)
+                .battlesLost(3)
+                .totalProblemsSolved(10)
+                .rank(null)
+                .name("TestUser")
+                .avatarUrl("http://avatar.url")
+                .build();
+        
+        when(profileRepository.existsById(userId)).thenReturn(true);
+        when(cache.get(userId, ArenaProfileResponse.class)).thenReturn(cachedResponse);
+        when(profileRepository.findRankByUserId(userId)).thenReturn(12);
+
+        ArenaProfileResponse response = arenaService.getProfile(userId);
+
+        assertNotNull(response);
+        assertEquals(userId, response.getUserId());
+        assertEquals(1400, response.getRating());
+        assertEquals(12, response.getRank());
+        assertEquals("TestUser", response.getName());
+
+        verify(profileRepository, times(1)).existsById(userId);
+        verify(profileRepository, never()).findProfileWithUserDetails(userId);
+        verify(profileRepository, times(1)).findRankByUserId(userId);
+        
+        assertNull(cachedResponse.getRank());
+    }
 }
