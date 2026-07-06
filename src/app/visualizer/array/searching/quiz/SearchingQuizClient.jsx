@@ -34,6 +34,13 @@ export default function SearchingQuizClient() {
       filename: "jump_search_quiz.js",
       themeColor: "from-emerald-500 to-teal-600",
     },
+    {
+      title: "Fibonacci Search Quiz",
+      description: "Practice Fibonacci Search concepts, Fibonacci sequence, logarithmic search, and time complexity.",
+      href: "/visualizer/array/fibonacci-search/quiz",
+      filename: "fibonacci_search_quiz.js",
+      themeColor: "from-amber-500 to-orange-600",
+    },
   ];
 
   return (
