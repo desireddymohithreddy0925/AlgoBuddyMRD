@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 
 import PracticeSidebar from "@/app/components/practice/PracticeSidebar";
-import PracticeRightSidebar from "@/app/components/practice/PracticeRightSidebar";
 import PracticeSessionBanner from "@/app/components/practice/PracticeSessionBanner";
 import PracticeDashboard from "@/app/components/practice/PracticeDashboard";
 import PracticeNotebook from "@/app/components/practice/PracticeNotebook";
@@ -459,14 +458,6 @@ export default function PracticePage() {
             mySheetCount={sheetCount}
             onBackToPractice={() => router.push("/")}
             onBackToSessions={() => setActiveView("problem-list")}
-        />
-
-        <PracticeRightSidebar
-            solved={stats.solved}
-            attempted={stats.attempted}
-            remaining={stats.remaining}
-            total={stats.total}
-            onViewProgress={() => router.push("/practice?view=dashboard")}
         />
 
     </div>
