@@ -182,7 +182,15 @@ const Footer = () => {
             <div>
               <h3 className={footerHeading}>Quick Links</h3>
               <div className="space-y-4">
-                <Link href="/" className={footerLink}>
+                <Link
+                  href="/#home"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    document.getElementById("home")?.scrollIntoView({
+                      behavior: "smooth",
+                    });
+                  }}
+                >
                   Home
                 </Link>
                 <Link href="/visualizer" className={footerLink}>
