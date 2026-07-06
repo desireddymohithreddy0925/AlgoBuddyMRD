@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Lazy;
 
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -130,7 +131,7 @@ public class PracticeService {
         return getUserProgress(userId);
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateStreak(@NonNull UUID userId) {
         statsRepository.insertStatsIfNotExists(userId);
 

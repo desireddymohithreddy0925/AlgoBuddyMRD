@@ -205,9 +205,10 @@ public class ArenaService {
         if (socketServerUrl == null || socketServerUrl.isEmpty()) {
             socketServerUrl = "http://localhost:4000";
         }
+        java.net.HttpURLConnection conn = null;
         try {
             java.net.URL url = new java.net.URL(socketServerUrl + "/api/verify-match/" + matchId + "/" + requestingUserId);
-            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn = (java.net.HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(3000);
             conn.setReadTimeout(3000);
@@ -232,9 +233,12 @@ public class ArenaService {
                     }
                 }
             }
-            conn.disconnect();
         } catch (Exception e) {
             log.error("Failed to verify matchmaking pair via socket server: {}", e.getMessage());
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
         throw new SecurityException("Match verification failed. Opponent has not consented to this match.");
     }
@@ -244,9 +248,10 @@ public class ArenaService {
         if (socketServerUrl == null || socketServerUrl.isEmpty()) {
             socketServerUrl = "http://localhost:4000";
         }
+        HttpURLConnection conn = null;
         try {
             URL url = new URL(socketServerUrl + "/api/verify-match-result/" + matchId + "/" + requestingUserId);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setConnectTimeout(3000);
             conn.setReadTimeout(3000);
@@ -260,7 +265,6 @@ public class ArenaService {
                     response.append(line);
                 }
                 reader.close();
-                conn.disconnect();
 
                 ObjectMapper mapper = new ObjectMapper();
                 JsonNode json = mapper.readTree(response.toString());
@@ -270,11 +274,13 @@ public class ArenaService {
                         return UUID.fromString(json.get("winnerId").asText());
                     }
                 }
-            } else {
-                conn.disconnect();
             }
         } catch (Exception e) {
             log.error("Failed to verify match result via socket server: {}", e.getMessage());
+        } finally {
+            if (conn != null) {
+                conn.disconnect();
+            }
         }
         throw new SecurityException("Match result verification failed");
     }
