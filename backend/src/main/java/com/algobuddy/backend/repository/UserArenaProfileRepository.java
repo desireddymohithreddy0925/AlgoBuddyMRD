@@ -54,6 +54,24 @@ public interface UserArenaProfileRepository extends JpaRepository<UserArenaProfi
     Optional<ArenaLeaderboardProjection> findProfileWithUserDetails(@Param("userId") UUID userId);
 
     @Query(value = """
+            SELECT 
+                p.user_id as userId, 
+                p.xp as xp, 
+                p.level as level, 
+                p.rating as rating, 
+                p.battles_won as battlesWon, 
+                p.battles_lost as battlesLost, 
+                p.total_problems_solved as totalProblemsSolved,
+                COALESCE(u.raw_user_meta_data->>'name', split_part(u.email, '@', 1)) as name,
+                COALESCE(u.raw_user_meta_data->>'avatar_url', u.raw_user_meta_data->>'picture', '') as avatarUrl
+            FROM public.user_arena_profiles p
+            LEFT JOIN auth.users u ON p.user_id = u.id
+            WHERE p.user_id IN :userIds
+            """, nativeQuery = true)
+    List<ArenaLeaderboardProjection> findProfilesWithUserDetailsIn(@Param("userIds") List<UUID> userIds);
+
+
+    @Query(value = """
             SELECT COUNT(p.user_id) + 1
             FROM user_arena_profiles p
             CROSS JOIN (

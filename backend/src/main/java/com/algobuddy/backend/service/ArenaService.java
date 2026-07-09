@@ -89,8 +89,21 @@ public class ArenaService {
     public List<ArenaMatchResponse> getMatchHistory(UUID userId) {
         List<ArenaMatch> recentMatches = matchRepository.findRecentMatchesByUserId(userId, PageRequest.of(0, 5));
         
+        List<UUID> opponentIds = recentMatches.stream()
+                .map(match -> match.getPlayer1Id().equals(userId) ? match.getPlayer2Id() : match.getPlayer1Id())
+                .distinct()
+                .collect(Collectors.toList());
+
+        java.util.Map<UUID, String> opponentNameMap = new java.util.HashMap<>();
+        if (!opponentIds.isEmpty()) {
+            List<ArenaLeaderboardProjection> profiles = profileRepository.findProfilesWithUserDetailsIn(opponentIds);
+            for (ArenaLeaderboardProjection profile : profiles) {
+                opponentNameMap.put(profile.getUserId(), profile.getName());
+            }
+        }
+
         return recentMatches.stream()
-                .map(match -> mapToMatchResponse(match, userId))
+                .map(match -> mapToMatchResponse(match, userId, opponentNameMap))
                 .collect(Collectors.toList());
     }
 
@@ -127,14 +140,12 @@ public class ArenaService {
                 .build();
     }
 
-    private ArenaMatchResponse mapToMatchResponse(ArenaMatch match, UUID requestingUserId) {
+    private ArenaMatchResponse mapToMatchResponse(ArenaMatch match, UUID requestingUserId, java.util.Map<UUID, String> opponentNameMap) {
         boolean isPlayer1 = match.getPlayer1Id().equals(requestingUserId);
         UUID opponentId = isPlayer1 ? match.getPlayer2Id() : match.getPlayer1Id();
         
-        // Fetch opponent name from db if present, default to "User [id]"
-        String opponentName = profileRepository.findProfileWithUserDetails(opponentId)
-                .map(ArenaLeaderboardProjection::getName)
-                .orElse("User " + opponentId.toString().substring(0, 4));
+        // Fetch opponent name from pre-fetched map, default to "User [id]"
+        String opponentName = opponentNameMap.getOrDefault(opponentId, "User " + opponentId.toString().substring(0, 4));
         
         String result = "In Progress";
         if (match.getStatus() == ArenaMatch.MatchStatus.EXPIRED) {
