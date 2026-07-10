@@ -310,6 +310,31 @@ export default function CheatsheetDetail({ cheatsheet }) {
                 ))}
               </nav>
             </div>
+            <div>
+              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Quick Actions
+              </h2>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:border-[#a435f0]/30 hover:text-[#7c2bd6] dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-300"
+                >
+                  Download PDF
+                </button>
+                <button
+                  type="button"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:border-[#a435f0]/30 hover:text-[#7c2bd6] dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-300"
+                >
+                  Open Visualizer
+                </button>
+                <button
+                  type="button"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:border-[#a435f0]/30 hover:text-[#7c2bd6] dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-300"
+                >
+                  Practice Problems
+                </button>
+              </div>
+            </div>  
           </div>
         </aside>
       </div>
