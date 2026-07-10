@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 
+import org.springframework.transaction.PlatformTransactionManager;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,6 +25,7 @@ public class ArenaServiceUnitTest {
     private UserArenaProfileRepository profileRepository;
     private ArenaMatchRepository matchRepository;
     private CacheManager cacheManager;
+    private PlatformTransactionManager transactionManager;
     private Cache cache;
     private ArenaService arenaService;
 
@@ -32,9 +34,10 @@ public class ArenaServiceUnitTest {
         profileRepository = mock(UserArenaProfileRepository.class);
         matchRepository = mock(ArenaMatchRepository.class);
         cacheManager = mock(CacheManager.class);
+        transactionManager = mock(PlatformTransactionManager.class);
         cache = mock(Cache.class);
         when(cacheManager.getCache(anyString())).thenReturn(cache);
-        arenaService = new ArenaService(profileRepository, matchRepository, cacheManager);
+        arenaService = new ArenaService(profileRepository, matchRepository, cacheManager, transactionManager);
     }
 
     @Test
@@ -124,4 +127,42 @@ public class ArenaServiceUnitTest {
         verify(profileRepository, times(1)).save(any(UserArenaProfile.class));
         verify(profileRepository, times(1)).findProfileWithUserDetails(userId);
     }
+
+    @Test
+    public void testGetMatchHistoryResolvesNPlus1() {
+        UUID userId = UUID.randomUUID();
+        UUID opponentId = UUID.randomUUID();
+        
+        com.algobuddy.backend.entity.ArenaMatch match1 = com.algobuddy.backend.entity.ArenaMatch.builder()
+                .id(UUID.randomUUID())
+                .matchId("match-1")
+                .player1Id(userId)
+                .player2Id(opponentId)
+                .topic("Arrays")
+                .difficulty("Easy")
+                .startTime(java.time.LocalDateTime.now())
+                .status(com.algobuddy.backend.entity.ArenaMatch.MatchStatus.COMPLETED)
+                .winnerId(userId)
+                .build();
+
+        when(matchRepository.findRecentMatchesByUserId(eq(userId), any())).thenReturn(java.util.List.of(match1));
+        
+        ArenaLeaderboardProjection projection = mock(ArenaLeaderboardProjection.class);
+        when(projection.getUserId()).thenReturn(opponentId);
+        when(projection.getName()).thenReturn("OpponentUser");
+        
+        when(profileRepository.findProfilesWithUserDetailsIn(any())).thenReturn(java.util.List.of(projection));
+
+        java.util.List<com.algobuddy.backend.dto.ArenaMatchResponse> history = arenaService.getMatchHistory(userId);
+
+        assertNotNull(history);
+        assertEquals(1, history.size());
+        assertEquals("OpponentUser", history.get(0).getOpponentName());
+        assertEquals("Victory", history.get(0).getResult());
+
+        verify(matchRepository, times(1)).findRecentMatchesByUserId(eq(userId), any());
+        verify(profileRepository, times(1)).findProfilesWithUserDetailsIn(any());
+        verify(profileRepository, never()).findProfileWithUserDetails(any());
+    }
 }
+

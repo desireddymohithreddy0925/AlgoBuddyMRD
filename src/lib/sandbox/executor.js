@@ -29,23 +29,23 @@ const MAX_ISOLATES = 4;
 const pool = [];
 const waitQueue = [];
 let isShuttingDown = false;
+let activeIsolateCount = 0;
 
 function createIsolate() {
+  activeIsolateCount++;
   return new ivm.Isolate({ memoryLimit: MAX_MEMORY_MB });
 }
 
+function disposeIsolate(isolate) {
+  activeIsolateCount--;
+  try { isolate.dispose(); } catch {}
+}
+
 async function acquireIsolate() {
-  while (pool.length === 0) {
-    if (!isShuttingDown && pool.length < MAX_ISOLATES) {
-      const isolate = createIsolate();
-      pool.push(isolate);
-    } else if (isShuttingDown) {
-      throw new Error("Sandbox is shutting down");
-    } else {
-      await new Promise((resolve) => waitQueue.push(resolve));
-    }
-  }
-  return pool.shift();
+  if (isShuttingDown) throw new Error("Sandbox is shutting down");
+  if (pool.length > 0) return pool.shift();
+  if (activeIsolateCount < MAX_ISOLATES) return createIsolate();
+  return new Promise((resolve) => waitQueue.push(resolve));
 }
 
 function releaseIsolate(isolate) {
@@ -58,7 +58,10 @@ function releaseIsolate(isolate) {
 
 async function executeCode(code) {
   const startTime = Date.now();
-  const executionId = `exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const uuidPart = typeof globalThis !== "undefined" && globalThis.crypto?.randomUUID
+    ? globalThis.crypto.randomUUID().split("-")[0]
+    : Math.random().toString(36).substring(2, 10);
+  const executionId = `exec_${Date.now()}_${uuidPart}`;
   let isolate = null;
   let context = null;
   let isolateCorrupted = false;
@@ -176,12 +179,7 @@ async function executeCode(code) {
     // Dispose corrupted isolates; return healthy ones to pool
     if (isolate) {
       if (isolateCorrupted) {
-        try {
-          isolate.dispose();
-        } catch (e) {
-          // Ignore cleanup errors
-        }
-        // Replace with a fresh isolate
+        disposeIsolate(isolate);
         releaseIsolate(createIsolate());
       } else {
         releaseIsolate(isolate);
@@ -194,15 +192,14 @@ async function executeCode(code) {
 async function cleanup() {
   isShuttingDown = true;
   // Drain wait queue so waiting acquireIsolate calls throw
-  waitQueue.splice(0).forEach(resolve => resolve());
+  waitQueue.splice(0).forEach(resolve => {
+    try { resolve(); } catch {}
+  });
   for (const isolate of pool) {
-    try {
-      isolate.dispose();
-    } catch (e) {
-      // Ignore cleanup errors
-    }
+    try { isolate.dispose(); } catch {}
   }
   pool.length = 0;
+  activeIsolateCount = 0;
 }
 
 module.exports = { executeCode, cleanup };

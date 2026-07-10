@@ -1,113 +1,107 @@
 "use client";
 import { useState } from "react";
 
-const codeSteps = {
-  javascript: [
-    { line: 1, code: "for (let i = 0; i < arr.length; i++) {", explanation: "Outer loop: i goes from 0 to end. Each pass bubbles the largest unsorted element to its correct position." },
-    { line: 2, code: "  for (let j = 0; j < arr.length - i - 1; j++) {", explanation: "Inner loop: j compares adjacent elements. We stop at length-i-1 because last i elements are already sorted." },
-    { line: 3, code: "    if (arr[j] > arr[j + 1]) {", explanation: "Compare current element with next. If current is bigger, we need to swap them." },
-    { line: 4, code: "      [arr[j], arr[j+1]] = [arr[j+1], arr[j]];", explanation: "Swap! The bigger element moves one step to the right (bubbles up)." },
-    { line: 5, code: "    }", explanation: "End of swap block." },
-    { line: 6, code: "  }", explanation: "End of inner loop. One full inner pass done — largest unsorted element is now in place." },
-    { line: 7, code: "}", explanation: "End of outer loop. Array is fully sorted!" },
-  ],
-  python: [
-    { line: 1, code: "for i in range(len(arr)):", explanation: "Outer loop: i goes from 0 to end. Each pass bubbles the largest unsorted element to its correct position." },
-    { line: 2, code: "  for j in range(len(arr)-i-1):", explanation: "Inner loop: j compares adjacent elements. We stop at length-i-1 because last i elements are already sorted." },
-    { line: 3, code: "    if arr[j] > arr[j+1]:", explanation: "Compare current element with next. If current is bigger, we need to swap them." },
-    { line: 4, code: "      arr[j], arr[j+1] = arr[j+1], arr[j]", explanation: "Swap! The bigger element moves one step to the right (bubbles up)." },
-    { line: 5, code: "  # inner loop ends", explanation: "End of inner loop. One full inner pass done." },
-    { line: 6, code: "# outer loop ends", explanation: "End of outer loop. Array is fully sorted!" },
-  ],
-  java: [
-    { line: 1, code: "for (int i = 0; i < n-1; i++) {", explanation: "Outer loop: i goes from 0 to n-1. Each pass bubbles the largest unsorted element to its correct position." },
-    { line: 2, code: "  for (int j = 0; j < n-i-1; j++) {", explanation: "Inner loop: j compares adjacent elements. Stops at n-i-1 as last i elements are already sorted." },
-    { line: 3, code: "    if (arr[j] > arr[j+1]) {", explanation: "Compare current element with next. If current is bigger, we need to swap." },
-    { line: 4, code: "      int temp = arr[j];", explanation: "Save current element in a temporary variable before overwriting." },
-    { line: 5, code: "      arr[j] = arr[j+1];", explanation: "Move the smaller element to the left position." },
-    { line: 6, code: "      arr[j+1] = temp;", explanation: "Put the bigger element to the right position. Swap complete!" },
-    { line: 7, code: "    }", explanation: "End of swap block." },
-    { line: 8, code: "  }", explanation: "End of inner loop. Largest unsorted element is now in place." },
-    { line: 9, code: "}", explanation: "End of outer loop. Array is fully sorted!" },
-  ],
+const BUBBLE_SORT_STEPS = {
+  init: {
+    explanation: "Bubble Sort shuru ho raha hai. Array ko sort karna start karenge.",
+    variables: {},
+  },
+  phase_start: (p) => ({
+    explanation: `Pass ${p.pass} of ${p.totalPasses} — Aaj hum array ko ek baar pura traverse karenge.`,
+    variables: { pass: p.pass },
+  }),
+  comparing: (p) => ({
+    explanation: `Index ${p.j} aur ${p.jNext} ko compare kar rahe hain. Kya arr[${p.j}] > arr[${p.jNext}]?`,
+    variables: { i: p.j, j: p.jNext, "arr[i]": p.arr[p.j], "arr[j]": p.arr[p.jNext], comparisons: p.comparisons },
+  }),
+  swap_needed: (p) => ({
+    explanation: `arr[${p.j}] (${p.arr[p.j]}) bada hai arr[${p.jNext}] (${p.arr[p.jNext]}) se — Swap hoga!`,
+    variables: { swapping: `${p.arr[p.j]} ↔ ${p.arr[p.jNext]}`, swaps: p.swaps },
+  }),
+  swapped: (p) => ({
+    explanation: `Swap ho gaya! ${p.arr[p.j]} aur ${p.arr[p.jNext]} ki positions badal gayi.`,
+    variables: { swaps: p.swaps, array: `[${p.arr.join(", ")}]` },
+  }),
+  no_swap: (p) => ({
+    explanation: `arr[${p.j}] (${p.arr[p.j]}) already chhota hai — Koi swap nahi.`,
+    variables: { comparisons: p.comparisons },
+  }),
+  sorted_element: (p) => ({
+    explanation: `Index ${p.index} ka element sort ho gaya aur apni sahi jagah aa gaya! ✅`,
+    variables: { sorted_index: p.index, value: p.arr[p.index] },
+  }),
+  early_completion: {
+    explanation: "Koi swap nahi hua is pass mein — Array already sorted hai! Early exit. 🎉",
+    variables: {},
+  },
+  completed: (p) => ({
+    explanation: `Sort complete! Total ${p.comparisons} comparisons aur ${p.swaps} swaps lage. 🎊`,
+    variables: { final_array: `[${p.arr.join(", ")}]`, comparisons: p.comparisons, swaps: p.swaps },
+  }),
 };
 
-export default function CodeExplanationPanel({ currentStep = 0, iValues = { i: 0, j: 0, array: [] } }) {
-  const [lang, setLang] = useState("javascript");
-  const [isOpen, setIsOpen] = useState(true);
+function getStepInfo(frame) {
+  if (!frame) return { explanation: "Visualization shuru karo explanation dekhne ke liye.", variables: {} };
+  const handler = BUBBLE_SORT_STEPS[frame.type];
+  if (!handler) return { explanation: `Step: ${frame.type}`, variables: {} };
+  if (typeof handler === "function") return handler(frame.payload || {});
+  return handler;
+}
 
-  const steps = codeSteps[lang];
-  const activeLineIndex = currentStep % steps.length;
-  const activeStep = steps[activeLineIndex];
+export default function CodeExplanationPanel({ currentFrame }) {
+  const [isOpen, setIsOpen] = useState(true);
+  const { explanation, variables } = getStepInfo(currentFrame);
 
   return (
-    <div className="w-full max-w-2xl mx-auto mt-4 rounded-xl border border-purple-400 bg-[#1a1a2e] text-white shadow-lg">
+    <div className="w-full border border-gray-200 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-gray-900 dark:border-gray-700">
       {/* Header */}
       <div
-        className="flex items-center justify-between px-4 py-3 bg-purple-700 rounded-t-xl cursor-pointer"
+        className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800 cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <h2 className="text-base font-semibold tracking-wide">📖 Code Explanation Panel</h2>
-        <span className="text-xl">{isOpen ? "▲" : "▼"}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-lg">📖</span>
+          <span className="font-semibold text-gray-800 dark:text-gray-100 text-sm">
+            Code Explanation
+          </span>
+        </div>
+        <span className="text-gray-500 text-xs">{isOpen ? "▲ Hide" : "▼ Show"}</span>
       </div>
 
+      {/* Body */}
       {isOpen && (
         <div className="p-4 space-y-4">
-          {/* Language Selector */}
-          <div className="flex gap-2">
-            {["javascript", "python", "java"].map((l) => (
-              <button
-                key={l}
-                onClick={() => setLang(l)}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
-                  lang === l
-                    ? "bg-purple-600 text-white"
-                    : "bg-[#2a2a4a] text-gray-300 hover:bg-purple-800"
-                }`}
-              >
-                {l.charAt(0).toUpperCase() + l.slice(1)}
-              </button>
-            ))}
+          {/* Explanation */}
+          <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+            <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1">
+              💡 What's happening?
+            </p>
+            <p className="text-sm text-gray-700 dark:text-gray-200">{explanation}</p>
           </div>
 
-          {/* Code Block */}
-          <div className="bg-[#0f0f1a] rounded-lg p-3 font-mono text-sm overflow-auto max-h-52">
-            {steps.map((step, idx) => (
-              <div
-                key={idx}
-                className={`px-2 py-0.5 rounded transition-all ${
-                  idx === activeLineIndex
-                    ? "bg-purple-600 text-white font-bold"
-                    : "text-gray-400"
-                }`}
-              >
-                <span className="select-none mr-2 text-gray-600">{step.line}</span>
-                {step.code}
+          {/* Variable Tracker */}
+          {Object.keys(variables).length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">
+                📊 Variable State
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {Object.entries(variables).map(([key, val]) => (
+                  <div
+                    key={key}
+                    className="bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2 flex justify-between items-center"
+                  >
+                    <span className="text-xs font-mono text-purple-600 dark:text-purple-400">
+                      {key}
+                    </span>
+                    <span className="text-xs font-mono text-gray-800 dark:text-gray-200 font-bold">
+                      {String(val)}
+                    </span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-
-          {/* Explanation Box */}
-          <div className="bg-purple-900/40 border border-purple-500 rounded-lg px-4 py-3 text-sm">
-            <p className="text-purple-300 font-semibold mb-1">💡 What's happening:</p>
-            <p className="text-gray-200">{activeStep.explanation}</p>
-          </div>
-
-          {/* Variable State Tracker */}
-          <div className="bg-[#0f0f1a] rounded-lg p-3 text-sm">
-            <p className="text-purple-300 font-semibold mb-2">📊 Variable State Tracker</p>
-            <div className="flex flex-wrap gap-3">
-              <span className="bg-purple-800 px-3 py-1 rounded-full">
-                i = <strong>{iValues.i}</strong>
-              </span>
-              <span className="bg-purple-800 px-3 py-1 rounded-full">
-                j = <strong>{iValues.j}</strong>
-              </span>
-              <span className="bg-purple-800 px-3 py-1 rounded-full">
-                array = [{iValues.array?.join(", ")}]
-              </span>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>

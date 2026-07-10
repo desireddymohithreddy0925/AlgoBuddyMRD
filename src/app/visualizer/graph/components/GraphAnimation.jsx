@@ -39,14 +39,13 @@ const sequences = {
 };
 
 // Algorithms that only make sense on directed graphs
-const DIRECTED_ONLY = ["topological", "dijkstra", "bellman-ford", "a-star"];
+const DIRECTED_ONLY = ["topological", "dijkstra", "bellman-ford", "a-star", "ford-fulkerson"];
 
 // Algorithms that only make sense on undirected graphs
 const UNDIRECTED_ONLY = ["prim", "kruskal"];
 
 // Algorithms that require weighted edges
-const WEIGHTED_ONLY = ["dijkstra", "prim", "kruskal", "bellman-ford"];
-const WEIGHTED_ONLY = ["dijkstra", "prim", "kruskal", "a-star"];
+const WEIGHTED_ONLY = ["dijkstra", "prim", "kruskal", "bellman-ford", "a-star", "ford-fulkerson"];
 
 function getNode(id) {
   return nodes.find((node) => node.id === id);

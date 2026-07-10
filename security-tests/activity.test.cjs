@@ -6,14 +6,17 @@
 // its implementation directly (with getLocalISODate stubbed). trackActivity
 // is tested via inline mock to avoid the @/ alias resolution issue.
 
-const { test, describe } = require('node:test');
+const { test, describe, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert/strict');
 
 // ─── Inline computeStreak logic for testing ───────────────────────────────────
 // (Copied verbatim from src/lib/activity.js computeStreak body)
-// getLocalISODate stub: hardcoded to "2026-06-19" for deterministic tests
-function getLocalISODate() {
-  return '2026-06-19';
+// getLocalISODate stub: default to "2026-06-19" for deterministic tests
+function getLocalISODate(date = new Date('2026-06-19')) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function computeStreak(activities) {
@@ -22,8 +25,11 @@ function computeStreak(activities) {
   const dates = activities
     .filter(Boolean)
     .map((a) => {
+      if (a.activity_date && /^\d{4}-\d{2}-\d{2}$/.test(a.activity_date)) {
+        return a.activity_date;
+      }
       const d = new Date(a.activity_date || a.created_at);
-      return d.toISOString().split('T')[0];
+      return getLocalISODate(d);
     })
     .filter(Boolean)
     .sort((a, b) => new Date(b) - new Date(a));
@@ -33,9 +39,9 @@ function computeStreak(activities) {
   const uniqueDates = [...new Set(dates)];
   let streak = 1;
   const today = getLocalISODate();
-  const yesterday = new Date();
+  const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split('T')[0];
+  const yesterdayStr = getLocalISODate(yesterday);
 
   // Only count streak if most recent activity is today or yesterday
   if (uniqueDates[0] !== today && uniqueDates[0] !== yesterdayStr) return 0;
