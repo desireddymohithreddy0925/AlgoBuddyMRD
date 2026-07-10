@@ -39,7 +39,6 @@ function getPracticeProblems(id) {
   return practiceProblemsById[id] || practiceProblemsById.default;
 }
 
-
 function SectionCard({ id, title, children, tone = "slate" }) {
   const toneClasses =
     tone === "success"
@@ -97,7 +96,6 @@ export default function CheatsheetDetail({ cheatsheet }) {
     cheatsheet.overview ||
     `${title} is a quick-reference guide for solving problems with the ${title.toLowerCase()} pattern.`;
   const practiceProblems = getPracticeProblems(id);
-
 
   return (
     <div className="mx-auto max-w-7xl" id="cheatsheet-content">
@@ -259,6 +257,22 @@ export default function CheatsheetDetail({ cheatsheet }) {
               </div>
             </SectionCard>
           )}
+
+          {steps && steps.length > 0 && (
+            <SectionCard id="steps" title="Algorithm Steps">
+              <ol className="space-y-3">
+                {steps.map((step, index) => (
+                  <li key={step} className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-400">
+                    <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[#a435f0]/10 text-xs font-bold text-[#7c2bd6] dark:text-[#d8b4fe]">
+                      {index + 1}
+                    </span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ol>
+            </SectionCard>
+          )}
+
           <SectionCard id="practice-problems" title="Practice Problems">
             <div className="grid gap-4 md:grid-cols-3">
               {Object.entries({
@@ -309,6 +323,32 @@ export default function CheatsheetDetail({ cheatsheet }) {
                   </a>
                 ))}
               </nav>
+            </div>
+
+            <div>
+              <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Quick Actions
+              </h2>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:border-[#a435f0]/30 hover:text-[#7c2bd6] dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-300"
+                >
+                  Download PDF
+                </button>
+                <button
+                  type="button"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:border-[#a435f0]/30 hover:text-[#7c2bd6] dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-300"
+                >
+                  Open Visualizer
+                </button>
+                <button
+                  type="button"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:border-[#a435f0]/30 hover:text-[#7c2bd6] dark:border-slate-800 dark:bg-slate-900/40 dark:text-slate-300"
+                >
+                  Practice Problems
+                </button>
+              </div>
             </div>
           </div>
         </aside>
