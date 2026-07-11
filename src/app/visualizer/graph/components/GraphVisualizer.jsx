@@ -4,7 +4,8 @@ import React, { useState, useMemo, useCallback } from "react";
 import { 
   Settings2,
   BarChart3,
-  Info
+  Info,
+  Trash2
 } from "lucide-react";
 import { 
   BarChart, 
@@ -579,6 +580,12 @@ export default function GraphVisualizer({ algorithm = "bfs", startNode: initialS
     engine.reset();
   };
 
+  const clearGraph = useCallback(() => {
+    setNodes([]);
+    setEdges([]);
+    engine.reset();
+  }, [engine]);
+
   const reverseEdge = (edgeIndex) => {
     setEdges((current) =>
       current.map((edge, index) =>
@@ -604,6 +611,16 @@ export default function GraphVisualizer({ algorithm = "bfs", startNode: initialS
               <Settings2 className="h-4 w-4" />
               {isEditing ? "Editing Mode" : "Visualization Mode"}
             </button>
+
+            {isEditing && (
+              <button
+                onClick={clearGraph}
+                className="flex items-center gap-2 rounded-lg bg-red-100 px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
+              >
+                <Trash2 className="h-4 w-4" />
+                Clear Graph
+              </button>
+            )}
 
             {["dijkstra", "a-star", "ford-fulkerson"].includes(algorithm) && (
               <div className="flex items-center gap-2 ml-2">
