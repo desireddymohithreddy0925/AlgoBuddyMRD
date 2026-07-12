@@ -106,6 +106,11 @@ export default function ArenaPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedRow, setExpandedRow] = useState(null);
 
+  // Tournament Timer State
+  const [tournamentTimeLeft, setTournamentTimeLeft] = useState({
+    days: 0, hours: 0, minutes: 0, seconds: 0
+  });
+
   const calculateRank = (xp) => {
     if (xp >= 10000) return { name: "Grandmaster", Icon: Crown, color: "text-purple-500", ringColor: "border-purple-500" };
     if (xp >= 5000) return { name: "Diamond", Icon: Award, color: "text-indigo-500", ringColor: "border-indigo-500" };
@@ -133,6 +138,40 @@ export default function ArenaPage() {
   const ringRadius = 62;
   const ringCircumference = 2 * Math.PI * ringRadius;
   const ringDashoffset = ringCircumference - (rankProgress / 100) * ringCircumference;
+
+  // Tournament Timer Effect
+  useEffect(() => {
+    const getNextTargetDate = () => {
+      const now = new Date();
+      const target = new Date();
+      target.setDate(now.getDate() + ((7 - now.getDay()) % 7)); // Next Sunday
+      target.setHours(18, 0, 0, 0); // 6:00 PM
+      if (target.getTime() <= now.getTime()) {
+        target.setDate(target.getDate() + 7);
+      }
+      return target;
+    };
+
+    const targetDate = getNextTargetDate();
+
+    const updateTimer = () => {
+      const difference = targetDate.getTime() - new Date().getTime();
+      if (difference <= 0) {
+        setTournamentTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        return;
+      }
+      setTournamentTimeLeft({
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60)
+      });
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -1304,12 +1343,55 @@ export default function ArenaPage() {
                   </div>
                 )}
                 {activeTab === "tournaments" && (
-                  <div className="w-full text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out py-12">
-                    <Trophy size={64} className="mx-auto text-slate-300 dark:text-neutral-600 mb-4" />
-                    <h2 className="text-2xl font-black text-slate-800 dark:text-neutral-200">Tournaments Coming Soon</h2>
-                    <p className="text-slate-500 dark:text-neutral-400 max-w-md mx-auto">
-                      Get ready to compete in organized algorithmic brackets and win exclusive badges and XP prizes!
-                    </p>
+                  <div className="w-full text-left space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out">
+                    {/* Hero Section */}
+                    <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800 rounded-3xl p-8 relative overflow-hidden text-white flex flex-col md:flex-row items-center justify-between border border-indigo-500/30 shadow-2xl shadow-indigo-500/20">
+                      {/* Abstract Background Shapes */}
+                      <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-primary/30 rounded-full blur-3xl pointer-events-none"></div>
+                      <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                      
+                      <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
+                        <Trophy size={300} className="text-white transform -rotate-12" />
+                      </div>
+                      
+                      <div className="space-y-4 z-10 text-center md:text-left flex-1">
+                        <span className="text-[10px] bg-white/10 text-cyan-300 border border-cyan-400/30 font-bold uppercase tracking-wider px-3 py-1.5 rounded-full inline-flex items-center gap-2 mb-2 shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                          Registrations Open
+                        </span>
+                        <h2 className="text-4xl md:text-5xl font-black tracking-tight drop-shadow-lg leading-tight">
+                          AlgoBuddy <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-primary-light">Weekly Cup</span>
+                        </h2>
+                        <p className="text-sm md:text-base text-indigo-200 max-w-lg font-medium">
+                          Compete in our premier weekly algorithmic showdown. Solve 4 problems in 90 minutes. 
+                          Win exclusive badges, massive XP, and global glory.
+                        </p>
+                      </div>
+
+                      <div className="z-10 mt-8 md:mt-0 flex flex-col items-center bg-black/20 backdrop-blur-md border border-white/10 p-5 rounded-2xl">
+                        <div className="flex items-center gap-2 mb-4 text-indigo-200">
+                          <Clock size={16} />
+                          <span className="text-xs font-bold uppercase tracking-wider">Tournament Starts In</span>
+                        </div>
+                        <div className="flex gap-3">
+                          {[
+                            { label: 'Days', value: tournamentTimeLeft.days },
+                            { label: 'Hours', value: tournamentTimeLeft.hours },
+                            { label: 'Mins', value: tournamentTimeLeft.minutes },
+                            { label: 'Secs', value: tournamentTimeLeft.seconds }
+                          ].map((unit, idx) => (
+                            <div key={idx} className="flex flex-col items-center">
+                              <div className="w-14 h-14 bg-white/10 rounded-xl flex items-center justify-center border border-white/5 shadow-inner mb-2">
+                                <span className={`text-xl font-black ${unit.label === 'Secs' ? 'text-cyan-400' : 'text-white'}`}>
+                                  {unit.value.toString().padStart(2, '0')}
+                                </span>
+                              </div>
+                              <span className="text-[9px] font-bold text-indigo-300 uppercase tracking-widest">{unit.label}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
