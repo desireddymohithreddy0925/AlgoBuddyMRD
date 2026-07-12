@@ -277,7 +277,7 @@ public class ArenaService {
         throw new SecurityException("Match verification failed. Opponent has not consented to this match.");
     }
 
-    private UUID verifyMatchResult(String matchId, UUID requestingUserId) {
+    UUID verifyMatchResult(String matchId, UUID requestingUserId) {
         String socketServerUrl = System.getenv("SOCKET_SERVER_URL");
         if (socketServerUrl == null || socketServerUrl.isEmpty()) {
             socketServerUrl = "http://localhost:4000";
@@ -339,6 +339,22 @@ public class ArenaService {
             throw new IllegalArgumentException("matchId is required");
         }
 
+        ArenaMatch existingMatchPre = matchRepository.findByMatchId(matchIdStr)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid match ID"));
+
+        if (!existingMatchPre.getPlayer1Id().equals(requestingUserId) &&
+            !existingMatchPre.getPlayer2Id().equals(requestingUserId)) {
+            throw new SecurityException("User is not a participant in this match");
+        }
+
+        if (existingMatchPre.getStatus() == ArenaMatch.MatchStatus.COMPLETED || existingMatchPre.getWinnerId() != null) {
+            return;
+        }
+
+        if (existingMatchPre.getStatus() == ArenaMatch.MatchStatus.EXPIRED) {
+            throw new IllegalStateException("This match has expired and cannot accept results");
+        }
+
         boolean isWinner = request.isWinner();
         final int MAX_RETRIES = 3;
 
@@ -347,10 +363,7 @@ public class ArenaService {
 
                 if (!matchIdStr.startsWith("mock-match-")) {
                     UUID verifiedWinnerId = verifyMatchResult(matchIdStr, requestingUserId);
-                    if (!verifiedWinnerId.equals(requestingUserId)) {
-                        throw new SecurityException("Match result conflict: verified winner does not match claim");
-                    }
-                    isWinner = true;
+                    isWinner = requestingUserId.equals(verifiedWinnerId);
                 }
                 final boolean finalIsWinner = isWinner;
 
@@ -397,17 +410,26 @@ public class ArenaService {
                                 .orElseGet(() -> createDefaultProfile(opponentUserId));
                     }
 
-                    int requestingUserRatingChange = finalIsWinner ? 25 : -15;
-                    int opponentRatingChange = finalIsWinner ? -15 : 25;
+                    int requestingUserRatingChange = 0;
+                    int opponentRatingChange = 0;
+                    int requestingUserXp = 0;
+                    int opponentXp = 0;
 
-                    int requestingUserXp = finalIsWinner ? 50 : 10;
-                    int opponentXp = finalIsWinner ? 10 : 50;
+                    if (!isOpponentBot) {
+                        requestingUserRatingChange = finalIsWinner ? 25 : -15;
+                        opponentRatingChange = finalIsWinner ? -15 : 25;
+                        requestingUserXp = finalIsWinner ? 50 : 10;
+                        opponentXp = finalIsWinner ? 10 : 50;
+                    }
 
                     requestingUserProfile.setRating(Math.max(0, requestingUserProfile.getRating() + requestingUserRatingChange));
                     requestingUserProfile.setXp(requestingUserProfile.getXp() + requestingUserXp);
                     requestingUserProfile.setLevel((requestingUserProfile.getXp() / 1000) + 1);
-                    if (finalIsWinner) requestingUserProfile.setBattlesWon(requestingUserProfile.getBattlesWon() + 1);
-                    else requestingUserProfile.setBattlesLost(requestingUserProfile.getBattlesLost() + 1);
+                    if (!isOpponentBot) {
+                        requestingUserProfile.setTotalProblemsSolved(requestingUserProfile.getTotalProblemsSolved() + (finalIsWinner ? 1 : 0));
+                        if (finalIsWinner) requestingUserProfile.setBattlesWon(requestingUserProfile.getBattlesWon() + 1);
+                        else requestingUserProfile.setBattlesLost(requestingUserProfile.getBattlesLost() + 1);
+                    }
 
                     if (!isOpponentBot && opponentProfile != null) {
                         opponentProfile.setRating(Math.max(0, opponentProfile.getRating() + opponentRatingChange));
