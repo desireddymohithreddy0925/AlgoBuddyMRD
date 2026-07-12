@@ -1303,6 +1303,15 @@ export default function ArenaPage() {
                     </div>
                   </div>
                 )}
+                {activeTab === "tournaments" && (
+                  <div className="w-full text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-out py-12">
+                    <Trophy size={64} className="mx-auto text-slate-300 dark:text-neutral-600 mb-4" />
+                    <h2 className="text-2xl font-black text-slate-800 dark:text-neutral-200">Tournaments Coming Soon</h2>
+                    <p className="text-slate-500 dark:text-neutral-400 max-w-md mx-auto">
+                      Get ready to compete in organized algorithmic brackets and win exclusive badges and XP prizes!
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </main>
