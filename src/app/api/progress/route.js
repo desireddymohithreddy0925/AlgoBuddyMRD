@@ -106,9 +106,17 @@ export async function POST(request) {
     let longestStreak = 0;
 
     if (status === "Completed") {
+      const today = new Date().toISOString().split("T")[0];
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+
       let verifiedLocalDate = typeof localDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(localDate)
         ? localDate
-        : new Date().toISOString().split("T")[0];
+        : today;
+
+      // Reject dates outside [yesterday, today] to prevent streak fabrication
+      if (verifiedLocalDate < yesterday || verifiedLocalDate > today) {
+        verifiedLocalDate = today;
+      }
 
       const { data, error } = await supabase.rpc('upsert_progress_and_update_streak', {
         p_user_id: authResult.user.id,
