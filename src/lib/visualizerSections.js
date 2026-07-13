@@ -85,6 +85,10 @@ export const sections = [
             name: "Character Frequency",
             path: "/visualizer/string/character-frequency",
           },
+          {
+            name: "Anagram Check",
+            path: "/visualizer/string/anagram-check",
+          },
         ],
       },
     ],
