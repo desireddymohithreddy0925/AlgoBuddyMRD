@@ -1,7 +1,7 @@
 // app/components/models/GraphCanvas.jsx
 "use client";
 import { useRef, useState, useCallback } from "react";
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+
 
 const NODE_RADIUS = 26;
 const COLORS = {
@@ -187,21 +187,7 @@ const handleTouchMove = useCallback(
   [draggingNode, onMoveNode]
 );
 
-const handleTouchMove = useCallback(
-  (e) => {
-    if (!draggingNode || !onMoveNode || !svgRef.current) return;
-    
-    const touch = e.touches[0];
-    const rect = svgRef.current.getBoundingClientRect();
 
-    onMoveNode(
-      draggingNode,
-      touch.clientX - rect.left,
-      touch.clientY - rect.top
-    );
-  },
-  [draggingNode, onMoveNode]
-);
 
 const handleMouseUp = useCallback(() => {
   setDraggingNode(null);
@@ -423,9 +409,6 @@ const handleMouseUp = useCallback(() => {
           Click another node to connect · click same node or press Esc to cancel
         </text>
       )}
-      </svg>
-        </TransformComponent>
-      </TransformWrapper>
-    </div>
+    </svg>
   );
 }
