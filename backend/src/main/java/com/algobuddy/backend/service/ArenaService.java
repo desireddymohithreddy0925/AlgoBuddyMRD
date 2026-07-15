@@ -232,6 +232,9 @@ public class ArenaService {
     }
 
     private UUID verifyMatchmakingPair(String matchId, UUID requestingUserId) {
+        if (matchId == null || !matchId.matches("^(match|mock-match)-[a-zA-Z0-9-]+$")) {
+            throw new IllegalArgumentException("Invalid matchId format.");
+        }
         String socketServerUrl = System.getenv("SOCKET_SERVER_URL");
         if (socketServerUrl == null || socketServerUrl.isEmpty()) {
             socketServerUrl = "http://localhost:4000";
@@ -275,6 +278,9 @@ public class ArenaService {
     }
 
     UUID verifyMatchResult(String matchId, UUID requestingUserId) {
+        if (matchId == null || !matchId.matches("^(match|mock-match)-[a-zA-Z0-9-]+$")) {
+            throw new IllegalArgumentException("Invalid matchId format.");
+        }
         String socketServerUrl = System.getenv("SOCKET_SERVER_URL");
         if (socketServerUrl == null || socketServerUrl.isEmpty()) {
             socketServerUrl = "http://localhost:4000";
