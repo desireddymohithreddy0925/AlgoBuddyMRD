@@ -2071,4 +2071,21 @@ export const algorithmRegistry = {
     import("@/app/visualizer/string/kmp-algorithm/page")
   ),
 },
+"string/rabin-karp": {
+  metadata: {
+    title: "Rabin-Karp Algorithm Visualizer | AlgoBuddy",
+    description:
+      "Learn and visualize the Rabin-Karp string matching algorithm step by step using rolling hash, interactive animations, code examples, and quizzes.",
+    keywords: [
+      "Rabin-Karp",
+      "String Matching",
+      "Pattern Matching",
+      "Rolling Hash",
+      "Algorithms",
+      "AlgoBuddy",
+    ],
+    category: "String",
+    difficulty: "Medium",
+  },
+},
 };
