@@ -75,7 +75,7 @@ export default function SpectatorSimulatorModal({ isOpen, onClose, matchData }) 
 
     socket.on("connect", () => {
       console.log("Spectator Socket Connected");
-      socket.emit("spectate_match", { matchId: matchData.matchId });
+      socket.emit("join_spectator", { matchId: matchData.matchId });
     });
 
     socket.on("spectator_count", (data) => {
@@ -160,7 +160,7 @@ export default function SpectatorSimulatorModal({ isOpen, onClose, matchData }) 
     return () => {
       if (p1TypingTimeoutRef.current) clearTimeout(p1TypingTimeoutRef.current);
       if (p2TypingTimeoutRef.current) clearTimeout(p2TypingTimeoutRef.current);
-      socket.emit("leave_spectate_match", { matchId: matchData.matchId });
+      socket.emit("leave_spectator", { matchId: matchData.matchId });
       socket.disconnect();
       socketRef.current = null;
     };
