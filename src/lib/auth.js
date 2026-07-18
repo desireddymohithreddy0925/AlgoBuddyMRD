@@ -56,13 +56,22 @@ export async function getAuthenticatedUser() {
     // Race getUser() against a 5-second timeout so that network issues
     // (ConnectTimeoutError to Supabase) fail fast instead of blocking
     // every API route for the full 10-second fetch timeout.
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Auth check timed out")), 5000)
-    );
-    const { data, error } = await Promise.race([
-      client.auth.getUser(),
-      timeoutPromise,
-    ]);
+    let timeoutId;
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error("Auth check timed out")), 5000);
+    }).catch(() => {});
+
+    let raceResult;
+    try {
+      raceResult = await Promise.race([
+        client.auth.getUser(),
+        timeoutPromise,
+      ]);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
+    const { data, error } = raceResult;
 
     if (error) {
       console.error("[Authentication Helper] Auth provider error during getUser:", error.message || error);
