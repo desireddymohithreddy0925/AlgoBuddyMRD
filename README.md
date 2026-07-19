@@ -299,24 +299,22 @@ Animated, step-by-step visualizations for a wide range of DSA topics:
 
 ## Screenshots
 
-<details>
-<summary><strong>Home Page</strong> — Landing page with algorithm category navigation, feature overview, and community stats.</summary>
-
 ![Home Page](public/screenshots/Home-page.png)
 
-</details>
+*Landing page with algorithm category navigation, feature overview, and community stats.*
+
+<br/>
+
+![Visualizer](public/screenshots/visualizer-page.png)
+
+*Step-by-step algorithm visualizer with controls, pseudocode panel, and complexity info.*
+
+<br/>
 
 <details>
 <summary><strong>Authentication Page</strong> — Login and signup with Google OAuth or email/password, protected by Cloudflare Turnstile.</summary>
 
 ![Login Page](public/screenshots/login-page.png)
-
-</details>
-
-<details>
-<summary><strong>Visualizer Dashboard</strong> — Step-by-step controls, pseudocode panel, and complexity info side-by-side.</summary>
-
-![Visualizer](public/screenshots/visualizer-page.png)
 
 </details>
 
@@ -333,6 +331,7 @@ Animated, step-by-step visualizations for a wide range of DSA topics:
 ![Queue Operations](public/screenshots/queue-operations-page.png)
 
 </details>
+
 
 <br/>
 
