@@ -57,9 +57,15 @@ export async function getAuthenticatedUser() {
     // (ConnectTimeoutError to Supabase) fail fast instead of blocking
     // every API route for the full 10-second fetch timeout.
     let timeoutId;
-    const timeoutPromise = new Promise((_, reject) => {
-      timeoutId = setTimeout(() => reject(new Error("Auth check timed out")), 5000);
-    }).catch(() => {});
+    // Resolve with a sentinel instead of rejecting+silencing:
+    // .catch(()=>{}) previously caused race() to return undefined,
+    // making the destructure below throw TypeError → mis-classified as AUTH_PROVIDER_ERROR.
+    const timeoutPromise = new Promise((resolve) => {
+      timeoutId = setTimeout(
+        () => resolve({ data: null, error: null, __timedOut: true }),
+        5000
+      );
+    });
 
     let raceResult;
     try {
@@ -69,6 +75,11 @@ export async function getAuthenticatedUser() {
       ]);
     } finally {
       clearTimeout(timeoutId);
+    }
+
+    if (raceResult?.__timedOut) {
+      console.warn("[Authentication Helper] Auth check timed out — treating as unauthenticated.");
+      return { success: false, type: "UNAUTHENTICATED" };
     }
 
     const { data, error } = raceResult;
@@ -85,10 +96,10 @@ export async function getAuthenticatedUser() {
 
     return { success: true, user: data.user };
   } catch (err) {
-    // Swallow timeout and network errors — return UNAUTHENTICATED so the
-    // caller gets a 401 quickly rather than a 500 after a long hang.
-    if (err.message === "Auth check timed out" || err?.cause?.code === "UND_ERR_CONNECT_TIMEOUT") {
-      console.warn("[Authentication Helper] Auth check timed out — treating as unauthenticated.");
+    // Network-level errors (e.g. UND_ERR_CONNECT_TIMEOUT) still reach here.
+    // The explicit timeout case is now handled above via the __timedOut sentinel.
+    if (err?.cause?.code === "UND_ERR_CONNECT_TIMEOUT") {
+      console.warn("[Authentication Helper] Network timeout — treating as unauthenticated.");
       return { success: false, type: "UNAUTHENTICATED" };
     }
     console.error("[Authentication Helper] Critical exception during authentication verification:", err.message || err);
