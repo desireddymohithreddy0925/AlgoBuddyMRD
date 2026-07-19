@@ -849,7 +849,7 @@ export default function GraphVisualizer({ algorithm = "bfs", startNode: initialS
           </div>
         </div>
         <div className="flex flex-col lg:flex-row gap-6 items-stretch min-h-[420px]">
-          <div className="flex-1 border rounded-xl overflow-hidden bg-white dark:bg-surface-900 border-surface-200 dark:border-surface-800 flex flex-col">
+          <div ref={canvasContainerRef} className="flex-1 border rounded-xl overflow-hidden bg-white dark:bg-surface-900 border-surface-200 dark:border-surface-800 flex flex-col">
             <GraphCanvas
               nodes={nodes}
               edges={edges}
@@ -869,26 +869,6 @@ export default function GraphVisualizer({ algorithm = "bfs", startNode: initialS
               className="w-full h-full flex-1"
             />
           </div>
-
-        <div ref={canvasContainerRef} className="w-full relative overflow-hidden bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-800 rounded-xl min-h-[420px] flex">
-          <GraphCanvas
-            nodes={nodes}
-            edges={edges}
-            onAddNode={addNode}
-            onAddEdge={handleAddEdge}
-            onRemoveNode={removeNode}
-            onRemoveEdge={removeEdge}
-            onReverseEdge={reverseEdge}
-            onMoveNode={moveNode}
-            onUpdateEdgeWeight={handleUpdateEdgeWeight}
-            animationState={!isEditing ? currentFrameData : {}}
-            interactive={isEditing}
-            isWeighted={isWeighted}
-            isDirected={isDirected}
-            visitedSet={currentFrameData.visitedNodes}
-            currentNode={currentFrameData.currentNode}
-            className="w-full h-full flex-1"
-          />
         </div>
 
         {/* Controls Bar */}
@@ -913,7 +893,6 @@ export default function GraphVisualizer({ algorithm = "bfs", startNode: initialS
             disabled={frames.length === 0 || hasNegativeWeightError}
           />
         </div>
-      </div>
 
       {/* Info & Charts Section */}
       <div className="grid gap-6 lg:grid-cols-2">
@@ -1110,6 +1089,7 @@ export default function GraphVisualizer({ algorithm = "bfs", startNode: initialS
             onApply={handleCustomGraphInput}
             currentData={edges}
           />
+        </div>
         </div>
       </div>
       </div>

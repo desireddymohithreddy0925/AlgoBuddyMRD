@@ -1568,29 +1568,30 @@ export default function ArenaPage() {
                         </div>
                       ) : (
                         <div className="space-y-4">
-                        <TournamentCard tournament={{
-                          title: "AlgoBuddy Weekly Cup",
-                          status: "upcoming",
-                          description: "The official weekly algorithmic showdown. Solve 4 problems in 90 minutes.",
-                          date: "Sunday, 6:00 PM UTC",
-                          duration: "90 mins",
-                          participants: 1250,
-                          prize: "10k XP + Weekly Champion Badge",
-                          color: "bg-primary/5 group-hover:bg-primary/10",
-                          iconBg: "bg-primary/10 text-primary"
-                        }} />
-                        <TournamentCard tournament={{
-                          title: "Dynamic Programming Sprint",
-                          status: "upcoming",
-                          description: "A rapid-fire contest focusing exclusively on DP problems. 1D, 2D, and Trees.",
-                          date: "Tuesday, 4:00 PM UTC",
-                          duration: "60 mins",
-                          participants: 840,
-                          prize: "5k XP",
-                          color: "bg-blue-500/5 group-hover:bg-blue-500/10",
-                          iconBg: "bg-blue-500/10 text-blue-500"
-                        }} />
-                      </div>
+                          <TournamentCard tournament={{
+                            title: "AlgoBuddy Weekly Cup",
+                            status: "upcoming",
+                            description: "The official weekly algorithmic showdown. Solve 4 problems in 90 minutes.",
+                            date: "Sunday, 6:00 PM UTC",
+                            duration: "90 mins",
+                            participants: 1250,
+                            prize: "10k XP + Weekly Champion Badge",
+                            color: "bg-primary/5 group-hover:bg-primary/10",
+                            iconBg: "bg-primary/10 text-primary"
+                          }} />
+                          <TournamentCard tournament={{
+                            title: "Dynamic Programming Sprint",
+                            status: "upcoming",
+                            description: "A rapid-fire contest focusing exclusively on DP problems. 1D, 2D, and Trees.",
+                            date: "Tuesday, 4:00 PM UTC",
+                            duration: "60 mins",
+                            participants: 840,
+                            prize: "5k XP",
+                            color: "bg-blue-500/5 group-hover:bg-blue-500/10",
+                            iconBg: "bg-blue-500/10 text-blue-500"
+                          }} />
+                        </div>
+                      )
                     ) : tournamentFilter === "Past" ? (
                       <div className="space-y-4">
                         {[
@@ -1710,7 +1711,7 @@ export default function ArenaPage() {
                           </div>
                         </div>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 )}
                 
