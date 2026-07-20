@@ -510,7 +510,7 @@ export default function ArenaPage() {
                 )}
 
                 {activeTab === "leaderboard" && (
-                  <LeaderboardTab leaderboard={leaderboard} leaderboardFilter={leaderboardFilter} setLeaderboardFilter={setLeaderboardFilter} searchQuery={searchQuery} setSearchQuery={setSearchQuery} expandedRow={expandedRow} setExpandedRow={setExpandedRow} />
+                  <LeaderboardTab leaderboard={leaderboard} leaderboardFilter={leaderboardFilter} setLeaderboardFilter={setLeaderboardFilter} searchQuery={searchQuery} setSearchQuery={setSearchQuery} expandedRow={expandedRow} setExpandedRow={setExpandedRow} profile={profile} />
                 )}
                 {activeTab === "history" && (
                   <HistoryTab />
