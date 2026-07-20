@@ -505,7 +505,6 @@ export default function ArenaPage() {
                   <FriendTab 
                     joinCode={joinCode}
                     setJoinCode={setJoinCode}
-                    handleJoinDuel={handleJoinDuel}
                     openCreateDuelModal={openCreateDuelModal}
                   />
                 )}
