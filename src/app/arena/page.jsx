@@ -19,7 +19,6 @@ import StreakTab from "./tabs/StreakTab";
 import RankedTab from "./tabs/RankedTab";
 import LiveTab from "./tabs/LiveTab";
 import HomeTab from "./tabs/HomeTab";
-import BadgesTab from "./tabs/BadgesTab";
 
 // Lazy Load Heavy Modals to significantly reduce Initial JS Bundle size
 const MatchmakingModal = dynamic(() => import("@/app/components/ui/MatchmakingModal"), { ssr: false });
