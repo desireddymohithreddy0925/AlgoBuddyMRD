@@ -5,6 +5,13 @@ const getInitials = (name) => {
   return name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2);
 };
 
+const ACHIEVEMENT_BADGES = [
+  { title: "Module Master", icon: "🏆" },
+  { title: "7-Day Streak", icon: "🔥" },
+  { title: "Community Helper", icon: "🤝" },
+  { title: "Arena Champion", icon: "⚔️" },
+];
+
 export default function HomeTab({ profile, currentUserStats, leaderboard, openMatchmakingModal, openCreateDuelModal }) {
   return (
     <>
