@@ -699,6 +699,12 @@ io.on("connection", async (socket) => {
       const matchId = await redisClient.hget(`{arena}:socket:${socket.id}`, "matchId");
       if (!matchId || matchId !== data.matchId) return;
 
+      await redisClient.hset(
+        `{arena}:match:${matchId}:testResults`,
+        socket.data.userId,
+        JSON.stringify({ passed: data.passed, total: data.total, status: data.status, failedAttempts: data.failedAttempts, timestamp: Date.now() })
+      );
+
       socket.to(data.matchId).emit("opponent_test_result", {
         userId: socket.data.userId,
         passed: data.passed,
@@ -760,6 +766,20 @@ io.on("connection", async (socket) => {
       if (!matchId || matchId !== data.matchId) return;
 
       try {
+        const testResultsStr = await redisClient.hget(
+          `{arena}:match:${matchId}:testResults`,
+          socket.data.userId
+        );
+
+        if (!testResultsStr) {
+          return socket.emit("error", { message: "Cannot complete match: no test results recorded" });
+        }
+
+        const testResults = JSON.parse(testResultsStr);
+        if (!testResults.passed || testResults.passed < 1) {
+          return socket.emit("error", { message: "Cannot complete match: insufficient test results" });
+        }
+
         const resultStr = await redisClient.eval(
           ATOMIC_MATCH_UPDATE_SCRIPT,
           1,
@@ -783,6 +803,7 @@ io.on("connection", async (socket) => {
           }
         }
         await redisClient.expire(`{arena}:match:${matchId}`, 60 * 60);
+        await redisClient.del(`{arena}:match:${matchId}:testResults`);
       } catch (err) {
         console.error(`[match_complete] Error for user ${socket.data.userId}:`, err);
       }
