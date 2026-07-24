@@ -87,10 +87,11 @@ export default function PlaybackControls({
               onClick={onReset}
               disabled={disabled}
               aria-label="Reset visualization to initial state"
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/60 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ml-1 focus:outline-none focus:ring-2 focus:ring-[#a435f0] focus:ring-offset-2 focus:ring-offset-slate-900"
+              className="ml-1 inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-[#a435f0] hover:bg-[#8f2cd6] rounded-full transition-all shadow-md shadow-[#a435f0]/20 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[#a435f0] focus:ring-offset-2 focus:ring-offset-slate-900"
               title="Reset"
             >
-              <RotateCcw size={18} aria-hidden="true" />
+              <RotateCcw size={14} aria-hidden="true" />
+              <span>Reset</span>
             </button>
           )}
         </div>
