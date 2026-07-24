@@ -53,20 +53,73 @@ export default function Navbar() {
   
   const { user, setUser } = useUser();
   const userRef = useRef(null);
+  const scrollProgressRef = useRef(null);
+  const scrollAnimationFrameRef = useRef(null);
   const avatarSrc = safeAvatarUrl(
     user?.user_metadata?.avatar_url || user?.user_metadata?.picture
   );
   const displayName = user?.user_metadata?.name || "AlgoBuddy User";
 
   useEffect(() => {
-    const handleScroll = () =>
-      setScrolled(window.scrollY > 4);
+    const updateScrollState = () => {
+      if (scrollAnimationFrameRef.current) {
+        cancelAnimationFrame(scrollAnimationFrameRef.current);
+      }
 
-    window.addEventListener("scroll", handleScroll);
+      scrollAnimationFrameRef.current = window.requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 4);
 
-    return () =>
-      window.removeEventListener("scroll", handleScroll);
-  }, []);
+        const scrollElement = document.scrollingElement || document.documentElement;
+        const scrollableDistance = Math.max(
+          scrollElement.scrollHeight - window.innerHeight,
+          0
+        );
+        const scrollProgress = scrollableDistance > 0
+          ? Math.min(window.scrollY / scrollableDistance, 1)
+          : 0;
+
+        if (scrollProgressRef.current) {
+          scrollProgressRef.current.style.setProperty(
+            "--scroll-progress",
+            String(scrollProgress)
+          );
+          scrollProgressRef.current.style.transform = `scaleX(${scrollProgress})`;
+        }
+      });
+    };
+
+    updateScrollState();
+    window.addEventListener("scroll", updateScrollState, { passive: true });
+    window.addEventListener("resize", updateScrollState);
+
+    return () => {
+      window.removeEventListener("scroll", updateScrollState);
+      window.removeEventListener("resize", updateScrollState);
+
+      if (scrollAnimationFrameRef.current) {
+        cancelAnimationFrame(scrollAnimationFrameRef.current);
+      }
+    };
+  }, [pathname]);
+
+  useEffect(() => {
+    if (scrollProgressRef.current) {
+      const scrollElement = document.scrollingElement || document.documentElement;
+      const scrollableDistance = Math.max(
+        scrollElement.scrollHeight - window.innerHeight,
+        0
+      );
+      const scrollProgress = scrollableDistance > 0
+        ? Math.min(window.scrollY / scrollableDistance, 1)
+        : 0;
+
+      scrollProgressRef.current.style.setProperty(
+        "--scroll-progress",
+        String(scrollProgress)
+      );
+      scrollProgressRef.current.style.transform = `scaleX(${scrollProgress})`;
+    }
+  }, [pathname]);
 
   useEffect(() => {
     const fn = (e) => {
@@ -158,11 +211,26 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-[9998] h-[72px] bg-white dark:bg-udemy-dark-bg flex items-center transition-all duration-200 ${scrolled
+        className={`fixed top-0 left-0 right-0 z-[9998] h-[72px] bg-white dark:bg-udemy-dark-bg flex items-center transition-all duration-200 relative ${scrolled
             ? "border-b border-surface-200 dark:border-udemy-dark-border shadow-sm"
             : "border-b border-transparent"
           }`}
       >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] overflow-hidden"
+        >
+          <div
+            ref={scrollProgressRef}
+            className="h-full w-full origin-left bg-[var(--color-primary)] transition-transform duration-150 ease-out motion-reduce:transition-none"
+            style={{
+              willChange: "transform",
+              "--scroll-progress": 0,
+              transform: "scaleX(0)",
+            }}
+          />
+        </div>
+
         <div className="w-full max-w-[1200px] mx-auto px-8 flex items-center justify-between h-full">
           <Link
             href="/"
