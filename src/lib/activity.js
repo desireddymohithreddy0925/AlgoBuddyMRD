@@ -1,5 +1,8 @@
 import { supabase } from "@/lib/supabase";
 import { api } from "./apiClient";
+import { createLogger } from "./logger.js";
+
+const log = createLogger("activity");
 
 const trackActivity = async (type = "site_visit") => {
   try {
@@ -9,7 +12,7 @@ const trackActivity = async (type = "site_visit") => {
     });
     return { success: true };
   } catch (e) {
-    console.error("trackActivity failed:", e);
+    log.error({ err: e }, "trackActivity failed.");
     return { success: false, error: e };
   }
 };
@@ -27,8 +30,11 @@ const computeStreak = (activities) => {
   const dates = activities
     .filter(Boolean)
     .map((a) => {
+      if (a.activity_date && /^\d{4}-\d{2}-\d{2}$/.test(a.activity_date)) {
+        return a.activity_date;
+      }
       const d = new Date(a.activity_date || a.created_at);
-      return d.toISOString().split("T")[0];
+      return getLocalISODate(d);
     })
     .filter(Boolean)
     .sort((a, b) => new Date(b) - new Date(a));
@@ -40,7 +46,7 @@ const computeStreak = (activities) => {
   const today = getLocalISODate();
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split("T")[0];
+  const yesterdayStr = getLocalISODate(yesterday);
 
   // Only count streak if most recent activity is today or yesterday
   if (uniqueDates[0] !== today && uniqueDates[0] !== yesterdayStr) return 0;
@@ -75,7 +81,7 @@ const getStreakData = async (userId, days = 30) => {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("getStreakData error:", error);
+      log.error({ err: error }, "getStreakData error.");
       return { streak: 0, activities: [] };
     }
 
@@ -84,9 +90,9 @@ const getStreakData = async (userId, days = 30) => {
       activities: data || [],
     };
   } catch (e) {
-    console.error("getStreakData exception:", e);
+    log.error({ err: e }, "getStreakData exception.");
     return { streak: 0, activities: [] };
   }
 };
 
-export { trackActivity, getStreakData, computeStreak };
+export { trackActivity, getStreakData, computeStreak, getLocalISODate };

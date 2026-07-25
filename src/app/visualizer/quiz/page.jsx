@@ -320,7 +320,7 @@ export default function QuizPage() {
     {
       title: "Graph Algorithms Quiz",
       description:
-        "Practice Dijkstra's, Bellman-Ford, Floyd-Warshall, Prim's, Kruskal's, and Topological Sort algorithms.",
+        "Practice Dijkstra's, Bellman-Ford, Floyd-Warshall, Prim's, Kruskal's, Topological Sort, and Kosaraju's algorithms.",
       href: "/visualizer/graph/algorithms/quiz",
       filename: "graph_algorithms_quiz.js",
       icon: Network,
@@ -465,6 +465,12 @@ export default function QuizPage() {
             </div>
           )}
         </div>
+        <Link
+          href="/visualizer"
+            className="mt-16 mx-auto flex w-fit items-center gap-2 px-6 py-3 rounded-2xl border border-udemy-border dark:border-udemy-dark-border hover:border-udemy-purple hover:text-udemy-purple dark:hover:text-udemy-purple-light transition bg-white dark:hover:border-udemy-purple dark:bg-udemy-dark-surface font-medium"
+        >
+          ← Back to Visulaizer
+        </Link>
       </div>
     </div>
   );

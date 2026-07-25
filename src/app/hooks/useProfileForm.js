@@ -19,11 +19,15 @@ export function useProfileForm(user, setUser) {
   const [formData, setFormData] = useState(buildFormDataFromUser(user));
   const [saving, setSaving] = useState(false);
   const [savingAvatar, setSavingAvatar] = useState(false);
+  const activeUserIdRef = useRef(user?.id || null);
 
   useEffect(() => {
-    if (user) {
-      setFormData(buildFormDataFromUser(user));
-    }
+    const nextUserId = user?.id || null;
+
+    if (nextUserId === activeUserIdRef.current) return;
+
+    activeUserIdRef.current = nextUserId;
+    setFormData(buildFormDataFromUser(user));
   }, [user]);
 
   const handleChange = useCallback((event) => {

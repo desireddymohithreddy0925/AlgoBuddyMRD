@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Search, Code, FileText, BookOpen, LayoutDashboard, X } from "lucide-react";
 import { SEARCH_INDEX, CATEGORIES } from "@/app/components/commandPaletteIndex";
 import { supabase } from "@/lib/supabase";
+import FocusTrap from "@/app/components/ui/FocusTrap";
 
 // ── Icon mapping per category ────────────────────────────────────────────────
 const CATEGORY_ICON = {
@@ -183,6 +184,7 @@ export function CommandPalette() {
   }, []);
 
   return (
+    <FocusTrap active={isOpen} onEscape={() => setIsOpen(false)}>
     /* Overlay */
     <div
       role="dialog"
@@ -318,5 +320,6 @@ export function CommandPalette() {
         </div>
       </div>
     </div>
+    </FocusTrap>
   );
 }

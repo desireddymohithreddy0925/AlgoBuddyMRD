@@ -35,6 +35,12 @@ const quizzes = [
     href: "/visualizer/tree/advanced/quiz/segment-tree",
   },
   {
+    title: "2D Segment Tree Quiz",
+    description:
+      "Test your understanding of 2D Segment Trees for efficient grid/matrix range queries and updates.",
+    href: "/visualizer/tree/advanced/quiz/segment-tree-2d",
+  },
+  {
     title: "Fenwick Tree Quiz",
     description:
       "Practice Binary Indexed Tree (Fenwick Tree) operations, prefix sums, and updates.",

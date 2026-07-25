@@ -333,7 +333,17 @@ export async function POST(req) {
       });
 
       if (error) {
-        return jsonResponse({ success: false, message: error.message }, 400);
+        if (error.message.includes("already") || error.code === "email_exists") {
+          return jsonResponse({
+            success: true,
+            message: "Signup request received. If the email is not registered, a verification link has been sent.",
+          });
+        }
+        console.error("[/api/auth/signup] Supabase createUser error:", error.message, error.code);
+        return jsonResponse({
+          success: false,
+          message: "Unable to create account. Please try again later.",
+        }, 400);
       }
 
       if (emailConfirm) {

@@ -30,6 +30,14 @@ class ApiClient {
 
     if (this.csrfToken) return this.csrfToken;
 
+    if (typeof document !== 'undefined') {
+      const metaTag = document.querySelector('meta[name="csrf-token"]');
+      if (metaTag) {
+        this.csrfToken = metaTag.getAttribute('content');
+        return this.csrfToken;
+      }
+    }
+
     if (!this.csrfTokenPromise) {
       this.csrfTokenPromise = fetch("/api/csrf-token", { method: "GET" })
         .then(async (res) => {

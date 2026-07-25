@@ -41,6 +41,12 @@ const quizzes = [
       "Practice DAG traversal, ordering of vertices, Kahn's Algorithm, and DFS-based Topological Sort.",
     href: "/visualizer/graph/algorithms/quiz/topological-sort",
   },
+  {
+    title: "Kosaraju's Algorithm Quiz",
+    description:
+      "Test your understanding of strongly connected components (SCCs), double DFS passes, graph transposition, and complexities.",
+    href: "/visualizer/graph/algorithms/quiz/kosaraju",
+  },
 ];
 
 export default function GraphAlgorithmsQuizClient() {
