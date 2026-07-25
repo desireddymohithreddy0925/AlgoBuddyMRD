@@ -857,13 +857,9 @@ export default function PracticePage() {
                                 <td className="py-4 px-5">
                                   <a
                                     href={prob.practiceUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-purple-400 hover:underline inline-flex items-center gap-1 transition"
+                                    className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-purple-400 hover:underline transition"
                                   >
-                                    <span>{prob.name}</span>
-                                    <ExternalLink size={12} className="opacity-50 shrink-0" />
+                                    {prob.name}
                                   </a>
                                 </td>
                                 <td className="py-4 px-5 text-xs font-bold text-slate-500 dark:text-neutral-400">
@@ -1072,9 +1068,11 @@ export default function PracticePage() {
                             <tr key={prob.id} className="border-b border-slate-50 dark:border-neutral-800/80 hover:bg-slate-50/20 dark:hover:bg-neutral-800/10 transition last:border-0">
                               <td className="py-4 px-5 text-center font-bold text-xs text-slate-400">{idx + 1}</td>
                               <td className="py-4 px-5">
-                                <a href={prob.practiceUrl} target="_blank" rel="noopener noreferrer" className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-purple-400 hover:underline inline-flex items-center gap-1 transition">
-                                  <span>{prob.name}</span>
-                                  <ExternalLink size={12} className="opacity-50 shrink-0" />
+                                <a
+                                  href={prob.practiceUrl}
+                                  className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-purple-400 hover:underline transition"
+                                >
+                                  {prob.name}
                                 </a>
                               </td>
                               <td className="py-4 px-5 text-center">
@@ -1181,13 +1179,19 @@ export default function PracticePage() {
                           const dateStr = progInfo?.updatedAt ? new Date(progInfo.updatedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Recently";
                           return (
                             <tr key={prob.id} className="border-b border-slate-50 dark:border-neutral-800/80 hover:bg-slate-50/20 dark:hover:bg-neutral-800/10 transition last:border-0">
-                              <td className="py-4 px-5 text-center font-bold text-xs text-slate-400">{idx + 1}</td>
+                              <td className="py-4 px-5 text-center font-bold text-xs text-slate-400">
+                                {idx + 1}
+                              </td>
+
                               <td className="py-4 px-5">
-                                <a href={prob.practiceUrl} target="_blank" rel="noopener noreferrer" className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-emerald-400 hover:underline inline-flex items-center gap-1 transition">
-                                  <span>{prob.name}</span>
-                                  <ExternalLink size={12} className="opacity-50 shrink-0" />
+                                <a
+                                  href={prob.practiceUrl}
+                                  className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-emerald-400 hover:underline transition"
+                                >
+                                  {prob.name}
                                 </a>
                               </td>
+
                               <td className="py-4 px-5 text-center text-xs font-bold text-slate-500 dark:text-neutral-400">
                                 {prob.topic}
                               </td>
@@ -1324,12 +1328,9 @@ export default function PracticePage() {
                                   <td className="py-4 px-5">
                                     <a
                                       href={prob.practiceUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-purple-400 hover:underline inline-flex items-center gap-1 transition"
+                                      className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-purple-400 hover:underline transition"
                                     >
-                                      <span>{prob.name}</span>
-                                      <ExternalLink size={12} className="opacity-50 shrink-0" />
+                                      {prob.name}
                                     </a>
                                   </td>
                                   <td className="py-4 px-5 text-center">
