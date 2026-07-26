@@ -847,10 +847,14 @@ export default function PracticePage() {
 
                             return (
                               <tr
-                                key={prob.id}
-                                onClick={() => window.open(prob.practiceUrl, "_blank", "noopener,noreferrer")}
-                                className="border-b border-slate-50 dark:border-neutral-800/80 hover:bg-slate-50/20 dark:hover:bg-neutral-800/10 transition last:border-0 cursor-pointer"
-                              >
+                                  key={prob.id}
+                                  onClick={() => window.open(prob.practiceUrl, "_blank", "noopener,noreferrer")}
+                                  className={`${
+                                    idx % 2 === 0
+                                      ? "bg-slate-50 dark:bg-neutral-900/40"
+                                      : "bg-white dark:bg-[#1a1b1e]"
+                                  } border-b border-slate-100 dark:border-neutral-800 hover:bg-violet-50 dark:hover:bg-neutral-800 transition-all duration-200 cursor-pointer last:border-0`}
+                                >
                                 <td className="py-4 px-5 text-center font-bold text-xs text-slate-400">
                                   {indexNumber}
                                 </td>
@@ -1322,8 +1326,15 @@ export default function PracticePage() {
                               const status = getStatus(prob.id);
                               const isSaved = isBookmarked(prob.id);
                               return (
-                                <tr key={prob.id} 
-                                onClick={() => window.open(prob.practiceUrl, "_blank", "noopener,noreferrer")}className="border-b border-slate-50 dark:border-neutral-800/80 hover:bg-slate-50/20 dark:hover:bg-neutral-800/10 transition last:border-0">
+                                <tr
+                                      key={prob.id}
+                                      onClick={() => window.open(prob.practiceUrl, "_blank", "noopener,noreferrer")}
+                                      className={`${
+                                        idx % 2 === 0
+                                          ? "bg-slate-50 dark:bg-neutral-900/40"
+                                          : "bg-white dark:bg-[#1a1b1e]"
+                                      } border-b border-slate-100 dark:border-neutral-800 hover:bg-violet-50 dark:hover:bg-neutral-800 transition-all duration-200 cursor-pointer last:border-0`}
+                                    >
                                   <td className="py-4 px-5 text-center font-bold text-xs text-slate-400">{idx + 1}</td>
                                   <td className="py-4 px-5">
                                     <a
