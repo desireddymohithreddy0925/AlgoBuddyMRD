@@ -32,15 +32,7 @@
  * otherwise falling back to clean readable text output.
  */
 
-import { createRequire } from "node:module";
-const require = createRequire(import.meta.url);
-
-let pino;
-try {
-  pino = require("pino");
-} catch {
-  pino = null;
-}
+import pino from "pino";
 
 // ─────────────────────────────────────────────────────────────
 // Config
@@ -99,38 +91,46 @@ function createConsoleFallbackLogger(context = {}) {
 }
 
 let baseLogger;
-if (pino) {
-  let prettyTransport;
-  if (!IS_PRODUCTION) {
-    try {
-      require.resolve("pino-pretty");
-      prettyTransport = {
-        target: "pino-pretty",
-        options: {
-          colorize: true,
-          translateTime: "SYS:HH:MM:ss",
-          ignore: "pid,hostname,env",
-          messageFormat: "[{module}] {msg}",
-        },
-      };
-    } catch {
-      // pino-pretty not installed — use default JSON output
+try {
+  if (typeof pino === "function") {
+    let prettyTransport;
+    if (!IS_PRODUCTION && typeof window === "undefined") {
+      try {
+        prettyTransport = {
+          target: "pino-pretty",
+          options: {
+            colorize: true,
+            translateTime: "SYS:HH:MM:ss",
+            ignore: "pid,hostname,env",
+            messageFormat: "[{module}] {msg}",
+          },
+        };
+      } catch {
+        // pino-pretty not installed — use default NDJSON output
+      }
     }
-  }
 
-  baseLogger = pino({
-    level: LOG_LEVEL,
-    base: {
-      env: process.env.NODE_ENV ?? "development",
-    },
-    timestamp: pino.stdTimeFunctions.isoTime,
-    serializers: {
-      err: pino.stdSerializers.err,
-      error: pino.stdSerializers.err,
-    },
-    transport: prettyTransport,
-  });
-} else {
+    baseLogger = pino({
+      level: LOG_LEVEL,
+      base: {
+        env: process.env.NODE_ENV ?? "development",
+      },
+      timestamp: pino.stdTimeFunctions ? pino.stdTimeFunctions.isoTime : () => `,"time":"${new Date().toISOString()}"`,
+      serializers: pino.stdSerializers
+        ? {
+            err: pino.stdSerializers.err,
+            error: pino.stdSerializers.err,
+          }
+        : {},
+      browser: {
+        asObject: true,
+      },
+      ...(prettyTransport ? { transport: prettyTransport } : {}),
+    });
+  } else {
+    baseLogger = createConsoleFallbackLogger();
+  }
+} catch {
   baseLogger = createConsoleFallbackLogger();
 }
 
