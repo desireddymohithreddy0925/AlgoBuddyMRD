@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Save, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Save, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useUser } from "@/features/user/UserContext";
 import { useProfileForm } from "@/app/hooks/useProfileForm";
@@ -14,6 +14,7 @@ const TOTAL_STEPS = 2;
 export default function ProfileSetupModal() {
   const { user, setUser, loading } = useUser();
   const [step, setStep] = useState(1);
+  const [isDismissed, setIsDismissed] = useState(false);
   const blockSaveRef = useRef(false);
   const {
     formData,
@@ -27,10 +28,17 @@ export default function ProfileSetupModal() {
 
   const shouldShow = !loading && shouldShowProfileSetup(user);
   const canProceed = isOnboardingStep1Valid(formData);
+  const isOpen = shouldShow && !isDismissed;
 
   useEffect(() => {
     if (shouldShow) {
       setStep(1);
+    }
+  }, [shouldShow]);
+
+  useEffect(() => {
+    if (!shouldShow) {
+      setIsDismissed(false);
     }
   }, [shouldShow]);
 
@@ -53,6 +61,10 @@ export default function ProfileSetupModal() {
 
   const handleBack = () => {
     setStep(1);
+  };
+
+  const handleClose = () => {
+    setIsDismissed(true);
   };
 
   const handleSave = async () => {
@@ -81,8 +93,11 @@ export default function ProfileSetupModal() {
 
   return (
     <AnimatePresence>
-      {shouldShow && (
+      {isOpen && (
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="profile-setup-title"
           className="fixed inset-0 z-[10001] flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm dark:bg-black/80"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -96,13 +111,24 @@ export default function ProfileSetupModal() {
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 20, opacity: 0, scale: 0.98 }}
           >
-            <div className="border-b border-slate-100 px-6 py-5 dark:border-neutral-800">
-              <div className="flex items-start gap-3">
+            <div className="relative border-b border-slate-100 px-6 py-5 dark:border-neutral-800">
+              <button
+                type="button"
+                onClick={handleClose}
+                className="absolute right-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-white"
+                aria-label="Close profile onboarding"
+              >
+                <X className="h-5 w-5" />
+              </button>
+
+              <div className="flex items-start gap-3 pr-10">
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-black uppercase tracking-wide text-violet-600 dark:text-violet-300">
                     Step {step} of {TOTAL_STEPS}
                   </p>
-                  <h2 className="mt-1 text-xl font-black text-[#111331] dark:text-white">Welcome to AlgoBuddy</h2>
+                  <h2 id="profile-setup-title" className="mt-1 text-xl font-black text-[#111331] dark:text-white">
+                    Welcome to AlgoBuddy
+                  </h2>
                   <p className="mt-1 text-sm font-semibold leading-relaxed text-slate-500 dark:text-neutral-400">
                     {step === 1
                       ? "Complete your profile to personalize your AlgoBuddy experience."

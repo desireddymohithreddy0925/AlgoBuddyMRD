@@ -65,7 +65,7 @@ const HeroSection = () => {
             </h1>
 
             {/* animated topic pill */}
-            <div className="flex items-center gap-3 h-12">
+            <div className="flex items-center gap-3 h-12" role="status" aria-live="polite" aria-atomic="true">
               <span
                 key={topic.label}
                 className="topic-chip relative inline-flex items-center gap-2 px-4 sm:px-5 py-2 rounded-full text-[13px] sm:text-[14px] font-bold backdrop-blur-sm transition-colors transition-opacity duration-300 ease-in-out"
@@ -87,6 +87,7 @@ const HeroSection = () => {
                     background: isDark ? topic.darkColor : topic.color,
                     boxShadow: `0 0 0 6px ${(isDark ? topic.darkColor : topic.color)}22`,
                   }}
+                  aria-hidden="true"
                 />
                 {topic.label}
                 <span
@@ -95,6 +96,7 @@ const HeroSection = () => {
                     background: "linear-gradient(90deg, transparent 20%, rgba(255,255,255,0.55) 50%, transparent 80%)",
                     animation: visible ? "pillShine 2.2s linear infinite" : "none",
                   }}
+                  aria-hidden="true"
                 />
               </span>
             </div>

@@ -1,8 +1,12 @@
 import { cookies } from "next/headers";
 import { getAuthenticatedUser } from "@/lib/auth";
 import { getSupabaseServerClient, jsonResponse, errorResponse } from "@/lib/serverApi";
+import { validateCsrfOrigin } from "@/lib/csrfConstants";
 
 export async function POST(request) {
+  if (!validateCsrfOrigin(request)) {
+    return jsonResponse({ error: "CSRF validation failed: untrusted origin" }, 403);
+  }
   try {
     const authResult = await getAuthenticatedUser();
     if (!authResult.success) {
@@ -19,8 +23,6 @@ export async function POST(request) {
     const cookieStore = await cookies();
     const supabase = getSupabaseServerClient(cookieStore);
 
-    // problem_bookmarks table schema:
-    // user_id, problem_id, topic_slug, created_at
     const { error: insertError } = await supabase
       .from("problem_bookmarks")
       .insert({
@@ -30,7 +32,6 @@ export async function POST(request) {
       });
 
     if (insertError) {
-      // Ignore unique constraint violations (23505) if the user already bookmarked it
       if (insertError.code !== '23505') {
         console.error("[/api/bookmarks POST] Supabase insert error:", insertError.message);
         return jsonResponse({ error: insertError.message }, 500);
@@ -44,6 +45,9 @@ export async function POST(request) {
 }
 
 export async function DELETE(request) {
+  if (!validateCsrfOrigin(request)) {
+    return jsonResponse({ error: "CSRF validation failed: untrusted origin" }, 403);
+  }
   try {
     const authResult = await getAuthenticatedUser();
     if (!authResult.success) {
@@ -52,9 +56,10 @@ export async function DELETE(request) {
 
     const { searchParams } = new URL(request.url);
     const problemId = searchParams.get("problemId");
+    const topicSlug = searchParams.get("topicSlug");
 
-    if (!problemId) {
-      return jsonResponse({ error: "problemId query parameter is required" }, 400);
+    if (!problemId || !topicSlug) {
+      return jsonResponse({ error: "problemId and topicSlug query params are required" }, 400);
     }
 
     const cookieStore = await cookies();
@@ -64,7 +69,8 @@ export async function DELETE(request) {
       .from("problem_bookmarks")
       .delete()
       .eq("user_id", authResult.user.id)
-      .eq("problem_id", problemId);
+      .eq("problem_id", problemId)
+      .eq("topic_slug", topicSlug);
 
     if (deleteError) {
       console.error("[/api/bookmarks DELETE] Supabase delete error:", deleteError.message);
@@ -98,7 +104,6 @@ export async function GET(request) {
       return jsonResponse([]);
     }
 
-    // Return the array directly, which matches what useProblemBookmarks expects
     return jsonResponse(bookmarks || []);
   } catch (error) {
     return errorResponse(error);

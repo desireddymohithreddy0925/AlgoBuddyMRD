@@ -25,7 +25,7 @@ export default function BottomNav() {
       className="fixed bottom-0 left-0 right-0 z-[9998] md:hidden bg-white dark:bg-udemy-dark-bg border-t border-surface-200 dark:border-udemy-dark-border"
       aria-label="Mobile bottom navigation"
     >
-      <div className="flex items-stretch h-[60px]">
+      <div className="flex items-stretch h-[60px]" role="tablist" aria-label="Navigation tabs">
         {BOTTOM_NAV_LINKS.map(({ href, label, icon: Icon }) => {
           const active = isActive(href);
           return (
@@ -34,6 +34,8 @@ export default function BottomNav() {
               href={href}
               aria-label={label}
               aria-current={active ? "page" : undefined}
+              role="tab"
+              tabIndex={active ? 0 : -1}
               className={`flex flex-col items-center justify-center flex-1 gap-1 text-[10px] font-semibold transition-colors duration-150 focus-ring ${
                 active
                   ? "text-primary"
@@ -43,6 +45,7 @@ export default function BottomNav() {
               <Icon
                 className={`w-5 h-5 transition-transform duration-150 ${active ? "scale-110" : ""}`}
                 strokeWidth={active ? 2.5 : 1.8}
+                aria-hidden="true"
               />
               <span>{label}</span>
             </Link>

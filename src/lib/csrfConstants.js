@@ -17,14 +17,24 @@ const TRUSTED_ORIGINS = (() => {
   return origins;
 })();
 
+const VERCEL_PREVIEW_REGEX = /^https:\/\/[a-zA-Z0-9-]+\.algobuddy\.vercel\.app$/;
+
 export function validateCsrfOrigin(request) {
   const origin = request.headers.get("origin");
   const referer = request.headers.get("referer");
 
-  const source = origin || referer || "";
-  const normalized = source.replace(/\/+$/, "");
+  let normalized = "";
+  if (origin) {
+    normalized = origin.replace(/\/+$/, "");
+  } else if (referer) {
+    try {
+      normalized = new URL(referer).origin;
+    } catch {}
+  }
 
-  return TRUSTED_ORIGINS.has(normalized);
+  if (TRUSTED_ORIGINS.has(normalized)) return true;
+  if (VERCEL_PREVIEW_REGEX.test(normalized)) return true;
+  return false;
 }
 
 const STATE_CHANGING_METHODS = new Set([

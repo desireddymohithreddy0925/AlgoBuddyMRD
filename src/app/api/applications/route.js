@@ -1,8 +1,12 @@
 import { cookies } from "next/headers";
 import { getAuthenticatedUser } from "@/lib/auth";
 import { getSupabaseServerClient, jsonResponse, errorResponse } from "@/lib/serverApi";
+import { validateCsrfOrigin } from "@/lib/csrfConstants";
 
 export async function POST(request) {
+  if (!validateCsrfOrigin(request)) {
+    return jsonResponse({ error: "CSRF validation failed: untrusted origin" }, 403);
+  }
   try {
     const authResult = await getAuthenticatedUser();
     if (!authResult.success) {
@@ -33,17 +37,6 @@ export async function POST(request) {
       return jsonResponse({ error: "This job is not open for applications" }, 400);
     }
 
-    const { data: existing, error: existingError } = await supabase
-      .from("applications")
-      .select("id")
-      .eq("student_id", authResult.user.id)
-      .eq("job_id", jobId)
-      .maybeSingle();
-
-    if (existing) {
-      return jsonResponse({ error: "You have already applied to this job" }, 409);
-    }
-
     const meta = authResult.user.user_metadata || {};
     const studentName = meta.name || authResult.user.email?.split("@")[0] || "Student";
     const studentBranch = meta.branch || null;
@@ -68,6 +61,9 @@ export async function POST(request) {
       .single();
 
     if (insertError) {
+      if (insertError.code === '23505') {
+        return jsonResponse({ error: "You have already applied to this job" }, 409);
+      }
       console.error("[/api/applications POST] Supabase error:", insertError.message);
       return jsonResponse({ error: insertError.message }, 500);
     }
@@ -85,9 +81,11 @@ export async function GET(request) {
       return jsonResponse({ error: "Authentication required" }, 401);
     }
 
+    const MAX_LIMIT = 100;
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page")) || 1;
-    const limit = parseInt(searchParams.get("limit")) || 50;
+    const rawLimit = parseInt(searchParams.get("limit")) || 50;
+    const limit = Math.min(Math.max(rawLimit, 1), MAX_LIMIT);
     const skip = (page - 1) * limit;
 
     const cookieStore = await cookies();
