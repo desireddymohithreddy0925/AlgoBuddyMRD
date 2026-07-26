@@ -23,10 +23,10 @@ import {
   ArrowRight,
   Sparkles,
   CheckCircle,
-  Copy,
   FolderSync
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import CopyButton from "@/app/components/ui/CopyButton";
 
 const SAMPLES = {
   JavaScript: `// JavaScript: Calculate the sum of an array
@@ -145,11 +145,6 @@ export default function CodeEstimator() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard! 📋");
   };
 
   return (
@@ -312,20 +307,52 @@ export default function CodeEstimator() {
                 </h3>
                 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className={`p-3 rounded-2xl border flex flex-col transition-all shadow-sm ${getComplexityColor(result.timeWorst)}`}>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-60">Worst Case (O)</span>
+                  <div className={`p-3 rounded-2xl border flex flex-col gap-2 transition-all shadow-sm ${getComplexityColor(result.timeWorst)}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-60">Worst Case (O)</span>
+                      <CopyButton
+                        text={result.timeWorst}
+                        ariaLabel="Copy worst case time complexity"
+                        title="Copy time complexity"
+                        className="bg-white/70 dark:bg-neutral-950/70"
+                      />
+                    </div>
                     <span className="text-lg font-black">{result.timeWorst}</span>
                   </div>
-                  <div className={`p-3 rounded-2xl border flex flex-col transition-all shadow-sm ${getComplexityColor(result.timeAverage)}`}>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-60">Average Case (Θ)</span>
+                  <div className={`p-3 rounded-2xl border flex flex-col gap-2 transition-all shadow-sm ${getComplexityColor(result.timeAverage)}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-60">Average Case (Θ)</span>
+                      <CopyButton
+                        text={result.timeAverage}
+                        ariaLabel="Copy average case time complexity"
+                        title="Copy time complexity"
+                        className="bg-white/70 dark:bg-neutral-950/70"
+                      />
+                    </div>
                     <span className="text-lg font-black">{result.timeAverage}</span>
                   </div>
-                  <div className={`p-3 rounded-2xl border flex flex-col transition-all shadow-sm ${getComplexityColor(result.timeBest)}`}>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-60">Best Case (Ω)</span>
+                  <div className={`p-3 rounded-2xl border flex flex-col gap-2 transition-all shadow-sm ${getComplexityColor(result.timeBest)}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-60">Best Case (Ω)</span>
+                      <CopyButton
+                        text={result.timeBest}
+                        ariaLabel="Copy best case time complexity"
+                        title="Copy time complexity"
+                        className="bg-white/70 dark:bg-neutral-950/70"
+                      />
+                    </div>
                     <span className="text-lg font-black">{result.timeBest}</span>
                   </div>
-                  <div className={`p-3 rounded-2xl border flex flex-col transition-all shadow-sm ${getComplexityColor(result.space)}`}>
-                    <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-60">Space Complexity</span>
+                  <div className={`p-3 rounded-2xl border flex flex-col gap-2 transition-all shadow-sm ${getComplexityColor(result.space)}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider opacity-60">Space Complexity</span>
+                      <CopyButton
+                        text={result.space}
+                        ariaLabel="Copy space complexity"
+                        title="Copy space complexity"
+                        className="bg-white/70 dark:bg-neutral-950/70"
+                      />
+                    </div>
                     <span className="text-lg font-black">{result.space}</span>
                   </div>
                 </div>
@@ -413,14 +440,12 @@ export default function CodeEstimator() {
                   </button>
                 </div>
                 
-                <button
-                  type="button"
-                  onClick={() => copyToClipboard(showOriginalTab ? code : result.optimizedCode)}
-                  className="p-1.5 rounded-lg border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-200/50 dark:hover:bg-neutral-800 text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 transition"
+                <CopyButton
+                  text={showOriginalTab ? code : result.optimizedCode}
+                  ariaLabel={showOriginalTab ? "Copy original code" : "Copy optimized code"}
                   title="Copy code"
-                >
-                  <Copy className="h-3.5 w-3.5" />
-                </button>
+                  className="p-1.5 px-2 rounded-lg"
+                />
               </div>
 
               {/* Editor Block */}
