@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Bot } from "lucide-react";
 
 export default function PlaybackControls({
@@ -25,6 +25,35 @@ export default function PlaybackControls({
   // Support both `isPaused`/`onTogglePlayPause` (new) and `isPlaying`/`onPlayPause` (legacy) prop conventions.
   const isPlaying = pausedProp !== undefined ? !pausedProp : (playingProp ?? false);
   const handlePlayPause = toggleProp || playPauseProp || (() => {});
+
+  useEffect(() => {
+    if (disabled) return;
+
+    const handleKeyDown = (e) => {
+      const activeTag = document.activeElement?.tagName?.toLowerCase();
+      if (activeTag === "input" || activeTag === "textarea" || document.activeElement?.isContentEditable) {
+        return;
+      }
+
+      if (e.code === "Space" && showPlayPause) {
+        e.preventDefault();
+        handlePlayPause();
+      } else if (e.key === "ArrowLeft" && onStepBackward) {
+        e.preventDefault();
+        onStepBackward();
+      } else if (e.key === "ArrowRight" && onStepForward) {
+        e.preventDefault();
+        onStepForward();
+      } else if ((e.key === "r" || e.key === "R") && onReset) {
+        e.preventDefault();
+        onReset();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [disabled, showPlayPause, handlePlayPause, onStepBackward, onStepForward, onReset]);
+
   return (
     <div
       role="toolbar"
