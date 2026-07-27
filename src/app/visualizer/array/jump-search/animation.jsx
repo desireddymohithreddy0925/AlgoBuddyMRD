@@ -355,6 +355,9 @@ const messageClass =
     ? "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200"
     : "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200";
 
+const inputClassName =
+  "p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-[#a435f0] focus:outline-none focus:ring-2 focus:ring-[#a435f0]/30 transition duration-300";
+
 return (
   <main className="container mx-auto">
 
@@ -383,7 +386,7 @@ return (
               setArrayElements(e.target.value)
             }
             placeholder="1,3,5,7,9"
-            className="w-full p-3 rounded-lg border border-gray-300"
+            className={`w-full ${inputClassName}`}
           />
 
           <button
@@ -414,7 +417,8 @@ return (
             onChange={(e) =>
               setTarget(e.target.value)
             }
-            className="w-full sm:max-w-xs p-3 rounded-lg border border-gray-300"
+            placeholder="5"
+            className={`w-full sm:max-w-xs ${inputClassName}`}
           />
 
           <div className="flex gap-2">
