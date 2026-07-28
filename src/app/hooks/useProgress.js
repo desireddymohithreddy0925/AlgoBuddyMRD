@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useUser } from "@/features/user/UserContext";
 import { api } from "@/lib/apiClient";
+import { getLocalISODate } from "@/lib/activity";
 
 /**
  * useProgress – lightweight hook for the topic sub-pages (/practice/[topic]).
@@ -66,6 +67,7 @@ export function useProgress() {
       // or via Spring Boot if configured
       if (user) {
         try {
+          const localDate = getLocalISODate();
           const useSpringBoot =
             process.env.NEXT_PUBLIC_USE_SPRING_BOOT_API === "true";
 
@@ -81,13 +83,13 @@ export function useProgress() {
                   Authorization: `Bearer ${session.access_token}`,
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ problemId, status }),
+                body: JSON.stringify({ problemId, status, localDate }),
               });
             }
           } else {
             await api.request("/api/progress", {
               method: "POST",
-              body: { problemId, status },
+              body: { problemId, status, localDate },
             });
           }
         } catch (err) {
