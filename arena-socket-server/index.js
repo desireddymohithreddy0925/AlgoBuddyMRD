@@ -475,13 +475,13 @@ io.on("connection", async (socket) => {
   socket.on("join_matchmaking", async (data) => {
     if (socket.data.isSpectator) return;
     let opponent = null;
+    let targetTopic = data.topic || "Arrays";
+    let targetDifficulty = data.difficulty || "Easy";
+    let queueKey = `{arena}:queue:${targetTopic}:${targetDifficulty}`;
     try {
       if (await isRateLimited(socket.data.userId)) return;
 
       console.log(`User joined matchmaking: userId=${socket.data.userId}`);
-      const targetTopic = data.topic || "Arrays";
-      const targetDifficulty = data.difficulty || "Easy";
-      const queueKey = `{arena}:queue:${targetTopic}:${targetDifficulty}`;
       const matchId = `match-${Date.now()}-${crypto.randomUUID().split('-')[0]}`;
       const matchKey = `{arena}:match:${matchId}`;
 
