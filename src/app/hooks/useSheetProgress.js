@@ -208,6 +208,9 @@ export function useSheetProgress() {
   // Version counter to prevent race conditions during rapid progress updates
   const updateVersionRef = useRef(0);
 
+  // Last known-good state from server — used for rollback on failed sync
+  const lastSyncedProgress = useRef(progress);
+
   // ── Load & sync on mount / user change ──────────────────────────────────
   useEffect(() => {
     syncedRef.current = false;
@@ -318,7 +321,6 @@ export function useSheetProgress() {
     async (problemId, newStatus) => {
       const updatedAt = new Date().toISOString();
       const myVersion = ++updateVersionRef.current;
-      const previousProgress = progress;
 
       // Update local state immediately so UI reflects the change right away.
       // Use a functional update to avoid stale `progress` closure issues.
@@ -350,6 +352,8 @@ export function useSheetProgress() {
           if (!fresh) throw new Error("Server returned no data");
           // Only apply server response if this is still the latest update
           if (updateVersionRef.current === myVersion) {
+            // Update last known-good state on successful sync
+            lastSyncedProgress.current = { ...progress, [problemId]: { status: newStatus, updatedAt } };
             // Use server streak data returned from either path.
             if (fresh.currentStreak !== undefined) {
               setStreakData({
@@ -366,8 +370,8 @@ export function useSheetProgress() {
           // Only rollback if this is still the latest update — prevents
           // overwriting state from a newer concurrent update.
           if (updateVersionRef.current === myVersion) {
-            setProgress(previousProgress);
-            writeLocal(previousProgress);
+            setProgress(lastSyncedProgress.current);
+            writeLocal(lastSyncedProgress.current);
           }
         }
       }
