@@ -33,8 +33,11 @@ class ApiClient {
     if (typeof document !== 'undefined') {
       const metaTag = document.querySelector('meta[name="csrf-token"]');
       if (metaTag) {
-        this.csrfToken = metaTag.getAttribute('content');
-        return this.csrfToken;
+        const content = metaTag.getAttribute('content');
+        if (content) {
+          this.csrfToken = content;
+          return this.csrfToken;
+        }
       }
     }
 
