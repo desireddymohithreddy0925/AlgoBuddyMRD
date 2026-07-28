@@ -373,6 +373,20 @@ export default function QuizPage() {
       btnBg:
         "bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-600",
     },
+    {
+      title: "AI Algorithms Quiz",
+      description:
+        "Test your understanding of AI algorithms including A* Search, Minimax, Alpha-Beta Pruning, and Monte Carlo Tree Search.",
+      href: "/visualizer/ai/quiz",
+      icon: Brain,
+      filename: "ai_algorithms_quiz.js",
+      cardBorder: "border-rose-500/20 dark:border-rose-500/30",
+      topBarBg: "bg-rose-500/10 dark:bg-rose-500/20",
+      iconStyle:
+        "bg-rose-500/10 border border-rose-500/20 dark:border-rose-500/30 text-rose-600 dark:text-rose-400",
+      btnBg:
+        "bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600",
+    },
   ];
   const filteredQuizzes = quizzes.filter((quiz) =>
     quiz.title.toLowerCase().includes(searchTerm.toLowerCase())
