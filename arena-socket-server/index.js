@@ -75,8 +75,7 @@ function isOriginAllowed(origin, callback) {
   if (
     ALLOWED_ORIGINS.includes(origin) ||
     isAllowedVercelOrigin(origin) ||
-    origin.startsWith("http://localhost:") ||
-    origin.startsWith("http://127.0.0.1:")
+    (typeof origin === 'string' && (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:")))
   ) {
     return callback(null, true);
   }
@@ -93,6 +92,15 @@ function isOriginAllowed(origin, callback) {
   }
 
   callback(new Error("Not allowed by CORS"));
+}
+
+// Strict variant for Socket.IO — does NOT allow falsy origins,
+// preventing WebSocket origin validation bypass.
+function isSocketOriginAllowed(origin, callback) {
+  if (!origin) {
+    return callback(new Error("Not allowed by CORS"));
+  }
+  return isOriginAllowed(origin, callback);
 }
 
 app.use(cors({
@@ -282,7 +290,7 @@ const ATOMIC_MATCH_UPDATE_SCRIPT = `
 
 const io = new Server(server, {
   cors: {
-    origin: isOriginAllowed,
+    origin: isSocketOriginAllowed,
     methods: ["GET", "POST"],
   },
   adapter: createAdapter(pubClient, subClient)
