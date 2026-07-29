@@ -212,6 +212,9 @@ export function useSheetProgress() {
   const progressRef = useRef(progress);
   progressRef.current = progress;
 
+  // Last known-good state from server — used for rollback on failed sync
+  const lastSyncedProgress = useRef(progress);
+
   // ── Load & sync on mount / user change ──────────────────────────────────
   useEffect(() => {
     syncedRef.current = false;
@@ -355,6 +358,8 @@ export function useSheetProgress() {
           if (!fresh) throw new Error("Server returned no data");
           // Only apply server response if this is still the latest update
           if (updateVersionRef.current === myVersion) {
+            // Update last known-good state on successful sync
+            lastSyncedProgress.current = { ...progress, [problemId]: { status: newStatus, updatedAt } };
             // Use server streak data returned from either path.
             if (fresh.currentStreak !== undefined) {
               setStreakData({

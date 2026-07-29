@@ -77,7 +77,8 @@ function getInitials(name) {
   if (!name) return "??";
   const cleanName = name.includes("@") ? name.split("@")[0] : name;
   const parts = cleanName.trim().split(/\s+/);
-  if (parts.length >= 2) {
+  if (!parts[0]) return "??";
+  if (parts.length >= 2 && parts[parts.length - 1][0]) {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
   return parts[0].slice(0, 2).toUpperCase();
@@ -161,10 +162,10 @@ export default function ArenaPage() {
     const getNextTargetDate = () => {
       const now = new Date();
       const target = new Date();
-      target.setDate(now.getDate() + ((7 - now.getDay()) % 7)); // Next Sunday
-      target.setHours(18, 0, 0, 0); // 6:00 PM
+      target.setUTCDate(now.getUTCDate() + ((7 - now.getUTCDay()) % 7)); // Next Sunday
+      target.setUTCHours(18, 0, 0, 0); // 6:00 PM UTC
       if (target.getTime() <= now.getTime()) {
-        target.setDate(target.getDate() + 7);
+        target.setUTCDate(target.getUTCDate() + 7);
       }
       return target;
     };
@@ -513,10 +514,10 @@ export default function ArenaPage() {
                   <LeaderboardTab leaderboard={leaderboard} leaderboardFilter={leaderboardFilter} setLeaderboardFilter={setLeaderboardFilter} searchQuery={searchQuery} setSearchQuery={setSearchQuery} expandedRow={expandedRow} setExpandedRow={setExpandedRow} profile={profile} />
                 )}
                 {activeTab === "history" && (
-                  <HistoryTab />
+                  <HistoryTab matchHistory={matchHistory} ensureLoggedIn={ensureLoggedIn} handleWatchLive={handleWatchLive} />
                 )}
                 {activeTab === "streak" && (
-                  <StreakTab profile={profile} />
+                  <StreakTab profile={profile} streakData={streakData} />
                 )}
                 {activeTab === "tournaments" && (
                   <TournamentsTab 

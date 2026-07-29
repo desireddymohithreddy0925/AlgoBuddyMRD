@@ -363,7 +363,16 @@ setInterval(async () => {
         let changed = false;
         let remainingCount = elements.length;
         for (const el of elements) {
-          const parsed = JSON.parse(el);
+          let parsed;
+          try {
+            parsed = JSON.parse(el);
+          } catch (parseErr) {
+            console.error('[queue-health] Corrupted queue entry, removing:', el.slice(0, 100));
+            await redisClient.lrem(key, 0, el);
+            changed = true;
+            remainingCount--;
+            continue;
+          }
           if (parsed.expiresAt && Date.now() > parsed.expiresAt) {
             await redisClient.lrem(key, 0, el);
             changed = true;
@@ -466,13 +475,13 @@ io.on("connection", async (socket) => {
   socket.on("join_matchmaking", async (data) => {
     if (socket.data.isSpectator) return;
     let opponent = null;
+    let targetTopic = data.topic || "Arrays";
+    let targetDifficulty = data.difficulty || "Easy";
+    let queueKey = `{arena}:queue:${targetTopic}:${targetDifficulty}`;
     try {
       if (await isRateLimited(socket.data.userId)) return;
 
       console.log(`User joined matchmaking: userId=${socket.data.userId}`);
-      const targetTopic = data.topic || "Arrays";
-      const targetDifficulty = data.difficulty || "Easy";
-      const queueKey = `{arena}:queue:${targetTopic}:${targetDifficulty}`;
       const matchId = `match-${Date.now()}-${crypto.randomUUID().split('-')[0]}`;
       const matchKey = `{arena}:match:${matchId}`;
 
@@ -801,9 +810,14 @@ io.on("connection", async (socket) => {
         }
         const match = JSON.parse(initialMatchStr);
         const topic = match.topic || "Arrays";
+        const VERIFIED_TOPICS = new Set(["Arrays", "Strings"]);
 
         let verificationCode = data.code || "";
         const lang = (data.language || "javascript").toLowerCase();
+
+        if (!VERIFIED_TOPICS.has(topic)) {
+          return socket.emit("error", { message: `Match topic "${topic}" does not support server-side verification yet.` });
+        }
 
         if (lang === "javascript" || lang === "js") {
           if (topic === "Arrays") {
@@ -920,11 +934,8 @@ if (typeof isAnagram !== 'function' || isAnagram("anagram", "nagaram") !== true 
         }
       }
 
-      // Clean up rate limit and socket key
+      // Clean up socket key (rate limit key expires naturally via TTL)
       await redisClient.del(`{arena}:socket:${socket.id}`);
-      if (socket.data && socket.data.userId) {
-        await redisClient.del(`{arena}:ratelimit:${socket.data.userId}`);
-      }
 
       console.log(`User disconnected: ${socket.id}`);
     } catch (error) {

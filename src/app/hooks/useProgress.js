@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useUser } from "@/features/user/UserContext";
 import { api } from "@/lib/apiClient";
+import { getLocalISODate } from "@/lib/activity";
 
 /**
  * useProgress – lightweight hook for the topic sub-pages (/practice/[topic]).
@@ -58,16 +59,19 @@ export function useProgress() {
   const updateProgress = useCallback(
     async (problemId, status) => {
       const updatedAt = new Date().toISOString();
-      const next = { ...rawProgress, [problemId]: { status, updatedAt } };
-      setRawProgress(next);
-      writeLocal(next);
+      setRawProgress((prev) => {
+        const next = { ...prev, [problemId]: { status, updatedAt } };
+        writeLocal(next);
+        return next;
+      });
 
-      // Sync to server via the progress API route (Supabase path)
-      // or via Spring Boot if configured
       if (user) {
         try {
           const useSpringBoot =
             process.env.NEXT_PUBLIC_USE_SPRING_BOOT_API === "true";
+
+          const latestProgress = readLocal();
+          const problemEntry = latestProgress[problemId];
 
           if (useSpringBoot) {
             const { supabase } = await import("@/lib/supabase");
@@ -81,13 +85,13 @@ export function useProgress() {
                   Authorization: `Bearer ${session.access_token}`,
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ problemId, status }),
+                body: JSON.stringify({ problemId, status, updatedAt }),
               });
             }
           } else {
             await api.request("/api/progress", {
               method: "POST",
-              body: { problemId, status },
+              body: { problemId, status, updatedAt },
             });
           }
         } catch (err) {
@@ -95,7 +99,7 @@ export function useProgress() {
         }
       }
     },
-    [rawProgress, user]
+    [user]
   );
 
   return { progress, loading, updateProgress };

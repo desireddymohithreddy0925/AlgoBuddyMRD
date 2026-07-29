@@ -2,14 +2,13 @@ import { jest } from '@jest/globals';
 
 jest.mock('@/lib/serverApi', () => ({
   getSupabaseServerClient: jest.fn(() => ({
+    rpc: jest.fn().mockResolvedValue({ data: null, error: { message: 'new row violates row-level security policy', details: 'RLS policy', hint: 'policy', code: '42501' } }),
     from: jest.fn(() => ({
-      upsert: jest.fn().mockResolvedValue({ data: null, error: { message: 'new row violates row-level security policy', details: 'RLS policy', hint: 'policy', code: '42501' } }),
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
       gte: jest.fn().mockReturnThis(),
       order: jest.fn().mockReturnThis(),
       limit: jest.fn().mockResolvedValue({ data: [], error: null }),
-      maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
     })),
   })),
   jsonResponse: jest.fn((data, status = 200) => ({ data, status })),
