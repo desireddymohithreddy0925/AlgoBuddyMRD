@@ -322,7 +322,9 @@ export function useSheetProgress() {
 
       // Update local state immediately so UI reflects the change right away.
       // Use a functional update to avoid stale `progress` closure issues.
+      // Capture the pre-update state inside the updater for correct rollback.
       setProgress((prev) => {
+        lastSyncedProgress.current = { ...prev };
         const next = {
           ...prev,
           [problemId]: { status: newStatus, updatedAt },
@@ -372,7 +374,7 @@ export function useSheetProgress() {
         }
       }
     },
-    [progress, user, streakData]
+    [user, streakData]
   );
 
   // ── Convenience getter ───────────────────────────────────────────────────
