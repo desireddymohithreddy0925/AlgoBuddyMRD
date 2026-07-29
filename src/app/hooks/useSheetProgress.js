@@ -208,6 +208,10 @@ export function useSheetProgress() {
   // Version counter to prevent race conditions during rapid progress updates
   const updateVersionRef = useRef(0);
 
+  // Ref to always hold the latest progress value for stable callbacks
+  const progressRef = useRef(progress);
+  progressRef.current = progress;
+
   // Last known-good state from server — used for rollback on failed sync
   const lastSyncedProgress = useRef(progress);
 
@@ -324,7 +328,9 @@ export function useSheetProgress() {
 
       // Update local state immediately so UI reflects the change right away.
       // Use a functional update to avoid stale `progress` closure issues.
+      // Capture the pre-update state inside the updater for correct rollback.
       setProgress((prev) => {
+        lastSyncedProgress.current = { ...prev };
         const next = {
           ...prev,
           [problemId]: { status: newStatus, updatedAt },
@@ -353,7 +359,7 @@ export function useSheetProgress() {
           // Only apply server response if this is still the latest update
           if (updateVersionRef.current === myVersion) {
             // Update last known-good state on successful sync
-            lastSyncedProgress.current = { ...progress, [problemId]: { status: newStatus, updatedAt } };
+            lastSyncedProgress.current = { ...progressRef.current, [problemId]: { status: newStatus, updatedAt } };
             // Use server streak data returned from either path.
             if (fresh.currentStreak !== undefined) {
               setStreakData({
@@ -376,17 +382,17 @@ export function useSheetProgress() {
         }
       }
     },
-    [progress, user, streakData]
+    [user, streakData]
   );
 
   // ── Convenience getter ───────────────────────────────────────────────────
   const getStatus = useCallback(
     (problemId) => {
-      const entry = progress[problemId];
+      const entry = progressRef.current[problemId];
       if (!entry) return "Not Started";
       return typeof entry === "string" ? entry : (entry.status || "Not Started");
     },
-    [progress]
+    []
   );
 
   return { progress, getStatus, updateProgress, streakData, loading, error };
