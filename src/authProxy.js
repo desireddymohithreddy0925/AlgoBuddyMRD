@@ -74,7 +74,8 @@ supabaseResponse = NextResponse.next({
 });
 
 if (intermediateResponse) {
-  for (const { name, value, options } of intermediateResponse.cookies.getAll()) {
+  for (const cookie of intermediateResponse.cookies.getAll()) {
+    const { name, value, ...options } = cookie;
     supabaseResponse.cookies.set(name, value, options);
   }
 }
