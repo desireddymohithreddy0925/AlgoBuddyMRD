@@ -1121,7 +1121,10 @@ app.get("/api/matches/active", async (req, res) => {
       if (matchStr) {
         const match = JSON.parse(matchStr);
         if (match.status === "in-progress") {
-          activeMatches.push(match);
+          const isParticipant = match.players?.some(p => p.userId === decoded.sub);
+          if (isParticipant) {
+            activeMatches.push(match);
+          }
         }
       }
     }
