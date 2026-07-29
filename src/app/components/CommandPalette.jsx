@@ -183,7 +183,6 @@ export function CommandPalette() {
   }, []);
 
   return (
-    /* Overlay */
     <div
       role="dialog"
       aria-modal="true"
