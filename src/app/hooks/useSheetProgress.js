@@ -208,6 +208,10 @@ export function useSheetProgress() {
   // Version counter to prevent race conditions during rapid progress updates
   const updateVersionRef = useRef(0);
 
+  // Ref to always hold the latest progress value for stable callbacks
+  const progressRef = useRef(progress);
+  progressRef.current = progress;
+
   // ── Load & sync on mount / user change ──────────────────────────────────
   useEffect(() => {
     syncedRef.current = false;
@@ -379,11 +383,11 @@ export function useSheetProgress() {
   // ── Convenience getter ───────────────────────────────────────────────────
   const getStatus = useCallback(
     (problemId) => {
-      const entry = progress[problemId];
+      const entry = progressRef.current[problemId];
       if (!entry) return "Not Started";
       return typeof entry === "string" ? entry : (entry.status || "Not Started");
     },
-    [progress]
+    []
   );
 
   return { progress, getStatus, updateProgress, streakData, loading, error };
