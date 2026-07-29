@@ -12,7 +12,7 @@ export default function QuizPage() {
   const quizzes = [
     {
       title: "Searching Quiz",
-      description: "Practice all searching algorithms including liner search, binary search, ternary search, etc.",
+      description: "Practice all searching algorithms including linear search, binary search, ternary search, etc.",
       href: "/visualizer/array/searching/quiz",
       icon: Search,
       filename: "searching_quiz.js",
@@ -483,7 +483,7 @@ export default function QuizPage() {
           href="/visualizer"
             className="mt-16 mx-auto flex w-fit items-center gap-2 px-6 py-3 rounded-2xl border border-udemy-border dark:border-udemy-dark-border hover:border-udemy-purple hover:text-udemy-purple dark:hover:text-udemy-purple-light transition bg-white dark:hover:border-udemy-purple dark:bg-udemy-dark-surface font-medium"
         >
-          ← Back to Visulaizer
+          ← Back to Visualizer
         </Link>
       </div>
     </div>
