@@ -828,42 +828,40 @@ export default function PracticePage() {
                           <th className="py-4 px-5">Topic</th>
                           <th className="py-4 px-5 text-center">Level</th>
                           <th className="py-4 px-5 text-center">Company</th>
-                          <th className="py-4 px-5 text-center">Status</th>
                           <th className="py-4 px-5 text-center w-12">Bookmark</th>
                         </tr>
                       </thead>
                       <tbody>
                         {paginatedProblems.length === 0 ? (
                           <tr>
-                            <td colSpan="7" className="py-8 text-center text-xs font-bold text-slate-400 dark:text-neutral-600">
+                            <td colSpan="6" className="py-8 text-center text-xs font-bold text-slate-400 dark:text-neutral-600">
                               No matching problems found.
                             </td>
                           </tr>
                         ) : (
                           paginatedProblems.map((prob, idx) => {
-                            const status = getStatus(prob.id);
                             const isSaved = isBookmarked(prob.id);
                             const indexNumber = (currentPage - 1) * itemsPerPage + idx + 1;
 
                             return (
                               <tr
-                                key={prob.id}
-                                onClick={() => window.open(prob.practiceUrl, "_blank", "noopener,noreferrer")}
-                                className="border-b border-slate-50 dark:border-neutral-800/80 hover:bg-slate-50/20 dark:hover:bg-neutral-800/10 transition last:border-0 cursor-pointer"
-                              >
+                                  key={prob.id}
+                                  onClick={() => window.open(prob.practiceUrl, "_blank", "noopener,noreferrer")}
+                                  className={`${
+                                    idx % 2 === 0
+                                      ? "bg-slate-50 dark:bg-neutral-900/40"
+                                      : "bg-white dark:bg-[#1a1b1e]"
+                                  } border-b border-slate-100 dark:border-neutral-800 hover:bg-violet-50 dark:hover:bg-neutral-800 transition-all duration-200 cursor-pointer last:border-0`}
+                                >
                                 <td className="py-4 px-5 text-center font-bold text-xs text-slate-400">
                                   {indexNumber}
                                 </td>
                                 <td className="py-4 px-5">
                                   <a
                                     href={prob.practiceUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-purple-400 hover:underline inline-flex items-center gap-1 transition"
+                                    className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-purple-400 hover:underline transition"
                                   >
-                                    <span>{prob.name}</span>
-                                    <ExternalLink size={12} className="opacity-50 shrink-0" />
+                                    {prob.name}
                                   </a>
                                 </td>
                                 <td className="py-4 px-5 text-xs font-bold text-slate-500 dark:text-neutral-400">
@@ -882,31 +880,6 @@ export default function PracticePage() {
                                 <td className="py-4 px-5 text-center">
                                   <div className="flex justify-center">
                                     <CompanyLogos companies={prob.companies} />
-                                  </div>
-                                </td>
-                                <td className="py-4 px-5 text-center">
-                                  <div className="flex justify-center">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleStatusToggle(prob.id, status);
-                                      }}
-                                      className="focus:outline-none focus-ring rounded-full p-1"
-                                      title={`Click to toggle status: currently ${status}`}
-                                      aria-label={`Status for ${prob.name}: ${status}`}
-                                    >
-                                      {status === "Completed" ? (
-                                        <div className="w-5 h-5 rounded-full border border-emerald-500 bg-emerald-500 flex items-center justify-center text-white scale-105 transition">
-                                          <CheckCircle2 size={12} className="stroke-[3]" />
-                                        </div>
-                                      ) : status === "In Progress" ? (
-                                        <div className="w-5 h-5 rounded-full border-2 border-amber-500 flex items-center justify-center scale-105 transition">
-                                          <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
-                                        </div>
-                                      ) : (
-                                        <div className="w-5 h-5 rounded-full border-2 border-slate-200 dark:border-neutral-700 hover:border-primary transition" />
-                                      )}
-                                    </button>
                                   </div>
                                 </td>
                                 <td className="py-4 px-5 text-center">
@@ -1072,9 +1045,11 @@ export default function PracticePage() {
                             <tr key={prob.id} className="border-b border-slate-50 dark:border-neutral-800/80 hover:bg-slate-50/20 dark:hover:bg-neutral-800/10 transition last:border-0">
                               <td className="py-4 px-5 text-center font-bold text-xs text-slate-400">{idx + 1}</td>
                               <td className="py-4 px-5">
-                                <a href={prob.practiceUrl} target="_blank" rel="noopener noreferrer" className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-purple-400 hover:underline inline-flex items-center gap-1 transition">
-                                  <span>{prob.name}</span>
-                                  <ExternalLink size={12} className="opacity-50 shrink-0" />
+                                <a
+                                  href={prob.practiceUrl}
+                                  className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-purple-400 hover:underline transition"
+                                >
+                                  {prob.name}
                                 </a>
                               </td>
                               <td className="py-4 px-5 text-center">
@@ -1181,13 +1156,19 @@ export default function PracticePage() {
                           const dateStr = progInfo?.updatedAt ? new Date(progInfo.updatedAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : "Recently";
                           return (
                             <tr key={prob.id} className="border-b border-slate-50 dark:border-neutral-800/80 hover:bg-slate-50/20 dark:hover:bg-neutral-800/10 transition last:border-0">
-                              <td className="py-4 px-5 text-center font-bold text-xs text-slate-400">{idx + 1}</td>
+                              <td className="py-4 px-5 text-center font-bold text-xs text-slate-400">
+                                {idx + 1}
+                              </td>
+
                               <td className="py-4 px-5">
-                                <a href={prob.practiceUrl} target="_blank" rel="noopener noreferrer" className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-emerald-400 hover:underline inline-flex items-center gap-1 transition">
-                                  <span>{prob.name}</span>
-                                  <ExternalLink size={12} className="opacity-50 shrink-0" />
+                                <a
+                                  href={prob.practiceUrl}
+                                  className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-emerald-400 hover:underline transition"
+                                >
+                                  {prob.name}
                                 </a>
                               </td>
+
                               <td className="py-4 px-5 text-center text-xs font-bold text-slate-500 dark:text-neutral-400">
                                 {prob.topic}
                               </td>
@@ -1318,18 +1299,22 @@ export default function PracticePage() {
                               const status = getStatus(prob.id);
                               const isSaved = isBookmarked(prob.id);
                               return (
-                                <tr key={prob.id} 
-                                onClick={() => window.open(prob.practiceUrl, "_blank", "noopener,noreferrer")}className="border-b border-slate-50 dark:border-neutral-800/80 hover:bg-slate-50/20 dark:hover:bg-neutral-800/10 transition last:border-0">
+                                <tr
+                                      key={prob.id}
+                                      onClick={() => window.open(prob.practiceUrl, "_blank", "noopener,noreferrer")}
+                                      className={`${
+                                        idx % 2 === 0
+                                          ? "bg-slate-50 dark:bg-neutral-900/40"
+                                          : "bg-white dark:bg-[#1a1b1e]"
+                                      } border-b border-slate-100 dark:border-neutral-800 hover:bg-violet-50 dark:hover:bg-neutral-800 transition-all duration-200 cursor-pointer last:border-0`}
+                                    >
                                   <td className="py-4 px-5 text-center font-bold text-xs text-slate-400">{idx + 1}</td>
                                   <td className="py-4 px-5">
                                     <a
                                       href={prob.practiceUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-purple-400 hover:underline inline-flex items-center gap-1 transition"
+                                      className="font-bold text-xs text-slate-800 dark:text-white hover:text-primary dark:hover:text-purple-400 hover:underline transition"
                                     >
-                                      <span>{prob.name}</span>
-                                      <ExternalLink size={12} className="opacity-50 shrink-0" />
+                                      {prob.name}
                                     </a>
                                   </td>
                                   <td className="py-4 px-5 text-center">

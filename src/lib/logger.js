@@ -44,50 +44,95 @@ const IS_PRODUCTION = process.env.NODE_ENV === "production";
 const LOG_LEVEL = process.env.LOG_LEVEL ?? (IS_PRODUCTION ? "info" : "debug");
 
 // ─────────────────────────────────────────────────────────────
-// Base pino instance
+// Base logger instance
 // ─────────────────────────────────────────────────────────────
 
-// Detect whether pino-pretty is available (it's a devDependency only).
-// Gracefully fall back to plain JSON output if it is absent (e.g. CI with
-// NODE_ENV unset, or production deployments that prune devDependencies).
-let prettyTransport;
-if (!IS_PRODUCTION) {
-  try {
-    require.resolve("pino-pretty");
-    prettyTransport = {
-      target: "pino-pretty",
-      options: {
-        colorize: true,
-        translateTime: "SYS:HH:MM:ss",
-        ignore: "pid,hostname,env",
-        messageFormat: "[{module}] {msg}",
-      },
+function createConsoleFallbackLogger(context = {}) {
+  const log = (level, arg1, arg2, ...rest) => {
+    let bindings = {};
+    let msg = arg1;
+    if (typeof arg1 === "object" && arg1 !== null && !(arg1 instanceof Error)) {
+      bindings = arg1;
+      msg = arg2;
+    } else if (arg1 instanceof Error) {
+      bindings = { err: { message: arg1.message, name: arg1.name, stack: arg1.stack } };
+      msg = arg2 || arg1.message;
+    }
+
+    const payload = {
+      level,
+      time: new Date().toISOString(),
+      env: process.env.NODE_ENV ?? "development",
+      ...context,
+      ...bindings,
+      msg: msg ?? "",
     };
-  } catch {
-    // pino-pretty not installed — use default JSON output
-  }
+
+    const str = JSON.stringify(payload);
+    if (level === "error" || level === "fatal") {
+      console.error(str, ...rest);
+    } else if (level === "warn") {
+      console.warn(str, ...rest);
+    } else {
+      console.log(str, ...rest);
+    }
+  };
+
+  return {
+    level: LOG_LEVEL,
+    trace: (...args) => log("trace", ...args),
+    debug: (...args) => log("debug", ...args),
+    info: (...args) => log("info", ...args),
+    warn: (...args) => log("warn", ...args),
+    error: (...args) => log("error", ...args),
+    fatal: (...args) => log("fatal", ...args),
+    child: (bindings) => createConsoleFallbackLogger({ ...context, ...bindings }),
+  };
 }
 
-const baseLogger = pino({
-  level: LOG_LEVEL,
+let baseLogger;
+try {
+  if (typeof pino === "function") {
+    let prettyTransport;
+    if (!IS_PRODUCTION && typeof window === "undefined") {
+      try {
+        prettyTransport = {
+          target: "pino-pretty",
+          options: {
+            colorize: true,
+            translateTime: "SYS:HH:MM:ss",
+            ignore: "pid,hostname,env",
+            messageFormat: "[{module}] {msg}",
+          },
+        };
+      } catch {
+        // pino-pretty not installed — use default NDJSON output
+      }
+    }
 
-  // Structured base fields present on every log line
-  base: {
-    env: process.env.NODE_ENV ?? "development",
-  },
-
-  // Use ISO timestamps for readability in monitoring tools
-  timestamp: pino.stdTimeFunctions.isoTime,
-
-  // Serialize Error objects properly: include message, name, and stack
-  serializers: {
-    err: pino.stdSerializers.err,
-    error: pino.stdSerializers.err,
-  },
-
-  // Use pino-pretty in development when available; raw NDJSON otherwise.
-  transport: prettyTransport,
-});
+    baseLogger = pino({
+      level: LOG_LEVEL,
+      base: {
+        env: process.env.NODE_ENV ?? "development",
+      },
+      timestamp: pino.stdTimeFunctions ? pino.stdTimeFunctions.isoTime : () => `,"time":"${new Date().toISOString()}"`,
+      serializers: pino.stdSerializers
+        ? {
+            err: pino.stdSerializers.err,
+            error: pino.stdSerializers.err,
+          }
+        : {},
+      browser: {
+        asObject: true,
+      },
+      ...(prettyTransport ? { transport: prettyTransport } : {}),
+    });
+  } else {
+    baseLogger = createConsoleFallbackLogger();
+  }
+} catch {
+  baseLogger = createConsoleFallbackLogger();
+}
 
 // ─────────────────────────────────────────────────────────────
 // Public API

@@ -9,7 +9,6 @@ export async function GET() {
   cookieStore.set(CSRF_COOKIE_NAME, token, {
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    httpOnly: true,
     path: "/",
     maxAge: 86400,
   });

@@ -21,6 +21,9 @@ const getFontSize = (value) => {
 };
 
 export default function ExponentialSearch() {
+  const sharedInputClassName =
+    "border rounded-lg p-3 bg-white text-slate-900 placeholder:text-slate-400 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:border-neutral-700";
+
   const [arrayElements, setArrayElements] = useState(() =>
     loadFromStorage("exponential-array-elements", "")
   );
@@ -193,7 +196,8 @@ export default function ExponentialSearch() {
           <div className="flex gap-2">
 
             <input
-              className="w-full border rounded-lg p-3"
+              className={`w-full ${sharedInputClassName}`}
+              placeholder="e.g. 2, 4, 6, 8"
               value={arrayElements}
               onChange={(e) => setArrayElements(e.target.value)}
               disabled={isAnimating}
@@ -218,7 +222,8 @@ export default function ExponentialSearch() {
 
             <input
               type="number"
-              className="border rounded-lg p-3 w-48"
+              className={`w-48 ${sharedInputClassName}`}
+              placeholder="e.g. 42"
               value={target}
               onChange={(e) => setTarget(e.target.value)}
             />

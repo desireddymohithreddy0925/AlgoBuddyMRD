@@ -1,3 +1,5 @@
+import CopyButton from "@/app/components/ui/CopyButton";
+
 export default function AlgorithmComparator({
   algorithms,
 }) {
@@ -50,15 +52,31 @@ export default function AlgorithmComparator({
                 </td>
 
                 <td className="px-6 py-5">
-                  <span className="inline-flex px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-900/40 text-[#a435f0] text-sm font-black border border-violet-200 dark:border-violet-800">
-                    {algorithm.time}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-900/40 text-[#a435f0] text-sm font-black border border-violet-200 dark:border-violet-800">
+                      {algorithm.time}
+                    </span>
+                    <CopyButton
+                      text={algorithm.time}
+                      ariaLabel={`Copy time complexity for ${algorithm.name}`}
+                      title="Copy time complexity"
+                      className="shrink-0"
+                    />
+                  </div>
                 </td>
 
                 <td className="px-6 py-5">
-                  <span className="inline-flex px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-sm font-black border border-indigo-200 dark:border-indigo-800">
-                    {algorithm.space}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-sm font-black border border-indigo-200 dark:border-indigo-800">
+                      {algorithm.space}
+                    </span>
+                    <CopyButton
+                      text={algorithm.space}
+                      ariaLabel={`Copy space complexity for ${algorithm.name}`}
+                      title="Copy space complexity"
+                      className="shrink-0"
+                    />
+                  </div>
                 </td>
               </tr>
             ))}
