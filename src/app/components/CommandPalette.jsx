@@ -242,12 +242,51 @@ export function CommandPalette() {
             </button>
           </div>
 
-          {/* ── Results ── */}
+                    {/* ── Results ── */}
           <div
             id="command-palette-listbox"
             role="listbox"
             aria-label="Search results"
             ref={listRef}
             className="overflow-y-auto p-2 flex-1"
-          >*
-
+          >
+            {grouped.length === 0 && !isSearchingSupabase ? (
+              <div className="p-3 text-sm text-gray-500 dark:text-gray-400">No results</div>
+            ) : (
+              grouped.map(({ cat, items }) => {
+                const Icon = CATEGORY_ICON[cat] || Search;
+                return (
+                  <div key={cat} className="mb-2">
+                    <div className="px-2 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">{cat}</div>
+                    {items.map((item, idx) => {
+                      const globalIdx = results.indexOf(item);
+                      return (
+                        <button
+                          id={`cp-item-${globalIdx}`}
+                          key={item.path}
+                          role="option"
+                          aria-selected={selectedIdx === globalIdx}
+                          onClick={() => handleSelect(item)}
+                          className={`w-full text-left flex items-center gap-3 px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-neutral-800 ${selectedIdx === globalIdx ? "bg-gray-100 dark:bg-neutral-800" : ""}`}
+                        >
+                          <Icon size={16} className="shrink-0 text-gray-400 dark:text-gray-500" aria-hidden="true" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm text-gray-900 dark:text-gray-100 truncate">
+                              <Highlighted text={item.name} query={query} />
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{item.path}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+        </div> {/* palette card */}
+      </div> {/* dialog wrapper */}
+    </FocusTrap>
+  );
+}
