@@ -1202,7 +1202,7 @@ export default function GraphVisualizer({ algorithm = "bfs", startNode: initialS
           <CustomInputPanel
             inputType="graph"
             onApply={handleCustomGraphInput}
-            currentData={edges}
+            currentData={{ nodes, edges }}
           />
         </div>
         </div>
