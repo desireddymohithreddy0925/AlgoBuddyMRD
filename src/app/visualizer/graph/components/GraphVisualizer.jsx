@@ -477,7 +477,7 @@ export default function GraphVisualizer({ algorithm = "bfs", startNode: initialS
     if (alg === "bfs") return Array.from(bfsGenerator(adj, startNodeId));
     if (alg === "dfs") return Array.from(dfsGenerator(adj, startNodeId));
     if (alg === "dijkstra") return Array.from(dijkstraGenerator(adj, startNodeId, targetNode || null));
-    if (alg === "a-star") return Array.from(aStarGenerator(nodes, edges, startNodeId, finalGoalNodeId));
+    if (alg === "a-star") return Array.from(aStarGenerator(nodes, edges, startNodeId, finalGoalNodeId, astarHeuristic));
     if (alg === "bellman-ford") return Array.from(bellmanFordGenerator(nodes, edges, startNodeId));
     if (alg === "floyd-warshall") return Array.from(floydWarshallGenerator(nodes, edges));
     if (alg === "prim") return Array.from(primGenerator(adj, startNodeId));
@@ -492,7 +492,7 @@ export default function GraphVisualizer({ algorithm = "bfs", startNode: initialS
     if (alg === "adjacency-list") return Array.from(adjacencyListGenerator(nodes, edges));
     if (alg === "adjacency-matrix") return Array.from(adjacencyMatrixGenerator(nodes, edges));
     return [];
-  }, [nodes, edges, initialStartNode, targetNode]);
+  }, [nodes, edges, initialStartNode, targetNode, astarHeuristic]);
 
   const frames = useMemo(() => generateFrames(algorithm), [generateFrames, algorithm]);
   const frames2 = useMemo(() => generateFrames(comparisonAlgorithm), [generateFrames, comparisonAlgorithm]);
@@ -861,6 +861,24 @@ export default function GraphVisualizer({ algorithm = "bfs", startNode: initialS
                   {nodes.map(n => (
                     <option key={n.id} value={n.id}>{n.label || n.id}</option>
                   ))}
+                </select>
+              </div>
+            )}
+
+            {algorithm === "a-star" && (
+              <div className="flex items-center gap-2 ml-2">
+                <label className="text-sm font-medium text-surface-600 dark:text-surface-300">Heuristic:</label>
+                <select
+                  value={astarHeuristic}
+                  onChange={(e) => {
+                    setAstarHeuristic(e.target.value);
+                    engine.reset();
+                  }}
+                  className="bg-surface-50 border border-surface-200 dark:bg-surface-800 dark:border-surface-600 rounded px-2 py-1 text-sm text-surface-900 dark:text-white"
+                >
+                  <option value="euclidean">Euclidean</option>
+                  <option value="manhattan">Manhattan</option>
+                  <option value="chebyshev">Chebyshev</option>
                 </select>
               </div>
             )}
