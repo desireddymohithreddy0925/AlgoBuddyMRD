@@ -70,9 +70,6 @@ export function useProgress() {
           const useSpringBoot =
             process.env.NEXT_PUBLIC_USE_SPRING_BOOT_API === "true";
 
-          const latestProgress = readLocal();
-          const problemEntry = latestProgress[problemId];
-
           if (useSpringBoot) {
             const { supabase } = await import("@/lib/supabase");
             const { data: { session } } = await supabase.auth.getSession();
