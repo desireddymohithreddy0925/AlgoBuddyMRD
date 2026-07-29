@@ -208,6 +208,13 @@ export function useSheetProgress() {
   // Version counter to prevent race conditions during rapid progress updates
   const updateVersionRef = useRef(0);
 
+  // Ref to always hold the latest progress value for stable callbacks
+  const progressRef = useRef(progress);
+  progressRef.current = progress;
+
+  // Last known-good state from server — used for rollback on failed sync
+  const lastSyncedProgress = useRef(progress);
+
   // ── Load & sync on mount / user change ──────────────────────────────────
   useEffect(() => {
     syncedRef.current = false;
@@ -318,11 +325,12 @@ export function useSheetProgress() {
     async (problemId, newStatus) => {
       const updatedAt = new Date().toISOString();
       const myVersion = ++updateVersionRef.current;
-      const previousProgress = progress;
 
       // Update local state immediately so UI reflects the change right away.
       // Use a functional update to avoid stale `progress` closure issues.
+      // Capture the pre-update state inside the updater for correct rollback.
       setProgress((prev) => {
+        lastSyncedProgress.current = { ...prev };
         const next = {
           ...prev,
           [problemId]: { status: newStatus, updatedAt },
@@ -350,6 +358,8 @@ export function useSheetProgress() {
           if (!fresh) throw new Error("Server returned no data");
           // Only apply server response if this is still the latest update
           if (updateVersionRef.current === myVersion) {
+            // Update last known-good state on successful sync
+            lastSyncedProgress.current = { ...progressRef.current, [problemId]: { status: newStatus, updatedAt } };
             // Use server streak data returned from either path.
             if (fresh.currentStreak !== undefined) {
               setStreakData({
@@ -366,23 +376,23 @@ export function useSheetProgress() {
           // Only rollback if this is still the latest update — prevents
           // overwriting state from a newer concurrent update.
           if (updateVersionRef.current === myVersion) {
-            setProgress(previousProgress);
-            writeLocal(previousProgress);
+            setProgress(lastSyncedProgress.current);
+            writeLocal(lastSyncedProgress.current);
           }
         }
       }
     },
-    [progress, user, streakData]
+    [user, streakData]
   );
 
   // ── Convenience getter ───────────────────────────────────────────────────
   const getStatus = useCallback(
     (problemId) => {
-      const entry = progress[problemId];
+      const entry = progressRef.current[problemId];
       if (!entry) return "Not Started";
       return typeof entry === "string" ? entry : (entry.status || "Not Started");
     },
-    [progress]
+    []
   );
 
   return { progress, getStatus, updateProgress, streakData, loading, error };
