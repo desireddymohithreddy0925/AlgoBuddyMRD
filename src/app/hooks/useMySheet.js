@@ -172,6 +172,7 @@ export function useMySheet() {
             for (const id of Object.keys(prev)) {
               if (!merged[id]) merged[id] = prev[id];
             }
+            writeLocal(merged);
             return merged;
           });
         }

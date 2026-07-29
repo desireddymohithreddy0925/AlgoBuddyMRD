@@ -60,6 +60,13 @@ export default function RecursionQuizClient() {
       filename: "tower_of_hanoi_quiz.js",
       description: "Test your understanding of optimal disk moves, auxiliary pegs, and recurrence relationships.",
     },
+    {
+      title: "Tail Recursion Quiz",
+      href: "/visualizer/recursion/tail-recursion/quiz",
+      filename: "tail_recursion_quiz.js",
+      description:
+        "Test your understanding of tail recursion, accumulator variables, base cases, and Tail Call Optimization.",
+    },
   ];
 
   return (

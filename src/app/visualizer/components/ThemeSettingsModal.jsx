@@ -11,6 +11,19 @@ export default function ThemeSettingsModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   const themes = [
     { id: "default", name: "Default (Standard)" },
     { id: "high-contrast", name: "High Contrast" },
@@ -26,11 +39,20 @@ export default function ThemeSettingsModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-surface-900 border border-surface-200 dark:border-surface-800">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="theme-settings-title"
+        className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-surface-900 border border-surface-200 dark:border-surface-800"
+      >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-full p-2 text-surface-500 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+          aria-label="Close modal"
+          className="absolute right-4 top-4 rounded-full p-2 text-surface-500 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors focus:outline-none focus:ring-2 focus:ring-primary"
         >
           <X className="h-5 w-5" />
         </button>
@@ -39,7 +61,7 @@ export default function ThemeSettingsModal({ isOpen, onClose }) {
           <div className="rounded-xl bg-primary/10 p-2 text-primary">
             <Palette className="h-6 w-6" />
           </div>
-          <h2 className="text-xl font-bold text-surface-900 dark:text-white">
+          <h2 id="theme-settings-title" className="text-xl font-bold text-surface-900 dark:text-white">
             Visualizer Color Themes
           </h2>
         </div>
@@ -53,6 +75,7 @@ export default function ThemeSettingsModal({ isOpen, onClose }) {
             <button
               key={t.id}
               onClick={() => handleThemeChange(t.id)}
+              aria-pressed={theme === t.id}
               className={`flex w-full items-center justify-between rounded-xl border p-4 text-left transition-all ${
                 theme === t.id
                   ? "border-primary bg-primary/5 shadow-sm"
