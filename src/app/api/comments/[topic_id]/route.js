@@ -1,6 +1,10 @@
 import { cookies } from 'next/headers';
 import { getSupabaseServerClient } from '@/lib/serverApi';
 
+function stripHtml(str) {
+  return str.replace(/<[^>]*>/g, '');
+}
+
 export async function GET(req, { params }) {
   const { topic_id } = await params;
   const cookieStore = await cookies();
@@ -15,5 +19,10 @@ export async function GET(req, { params }) {
     .eq('topic_id', topic_id)
     .order('created_at', { ascending: false });
 
-  return Response.json({ comments });
+  const sanitized = (comments || []).map(c => ({
+    ...c,
+    content: stripHtml(c.content || ''),
+  }));
+
+  return Response.json({ comments: sanitized });
 }
