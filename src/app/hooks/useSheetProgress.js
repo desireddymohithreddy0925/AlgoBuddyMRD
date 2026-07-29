@@ -318,7 +318,6 @@ export function useSheetProgress() {
     async (problemId, newStatus) => {
       const updatedAt = new Date().toISOString();
       const myVersion = ++updateVersionRef.current;
-      const previousProgress = progress;
 
       // Update local state immediately so UI reflects the change right away.
       // Use a functional update to avoid stale `progress` closure issues.
@@ -368,8 +367,8 @@ export function useSheetProgress() {
           // Only rollback if this is still the latest update — prevents
           // overwriting state from a newer concurrent update.
           if (updateVersionRef.current === myVersion) {
-            setProgress(previousProgress);
-            writeLocal(previousProgress);
+            setProgress(lastSyncedProgress.current);
+            writeLocal(lastSyncedProgress.current);
           }
         }
       }
