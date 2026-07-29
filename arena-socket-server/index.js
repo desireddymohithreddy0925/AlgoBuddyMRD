@@ -879,6 +879,11 @@ if (typeof isAnagram !== 'function' || isAnagram("anagram", "nagaram") !== true 
   });
 
   socket.on("disconnect", async () => {
+    if (socket.data.isSpectator) {
+      await redisClient.del(`{arena}:socket:${socket.id}`);
+      return;
+    }
+
     try {
       // First, clean up queue entries and socket key
       const existingQueueKey = await redisClient.hget(`{arena}:socket:${socket.id}`, 'queueKey');
