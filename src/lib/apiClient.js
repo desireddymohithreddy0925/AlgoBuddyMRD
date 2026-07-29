@@ -33,8 +33,11 @@ class ApiClient {
     if (typeof document !== 'undefined') {
       const metaTag = document.querySelector('meta[name="csrf-token"]');
       if (metaTag) {
-        this.csrfToken = metaTag.getAttribute('content');
-        return this.csrfToken;
+        const content = metaTag.getAttribute('content');
+        if (content) {
+          this.csrfToken = content;
+          return this.csrfToken;
+        }
       }
     }
 
@@ -114,7 +117,11 @@ class ApiClient {
         // refresh failed
       }
 
-      localStorage.removeItem("supabase.auth.token");
+      try {
+        await supabase.auth.signOut({ scope: 'local' });
+      } catch {
+        // signOut failed — best-effort cleanup
+      }
 
       if (typeof window !== "undefined") {
         window.location.href = "/login";
@@ -123,7 +130,14 @@ class ApiClient {
       throw new AuthError("Session expired");
     }
 
-    const data = await res.json();
+    let data = {};
+    if (res.status !== 204 && res.status !== 205) {
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+    }
 
     if (!res.ok) {
       if (

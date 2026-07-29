@@ -10,7 +10,7 @@ export async function GET(req, { params }) {
   const cookieStore = await cookies();
   const supabase = getSupabaseServerClient(cookieStore);
   
-  const { data: comments } = await supabase
+  const { data: comments, error } = await supabase
     .from('topic_comments')
     .select(`
       *,
@@ -19,10 +19,10 @@ export async function GET(req, { params }) {
     .eq('topic_id', topic_id)
     .order('created_at', { ascending: false });
 
-  const sanitized = (comments || []).map(c => ({
-    ...c,
-    content: stripHtml(c.content || ''),
-  }));
+  if (error) {
+    console.error("[/api/comments GET] Supabase error:", error.message);
+    return Response.json({ comments: [] });
+  }
 
-  return Response.json({ comments: sanitized });
+  return Response.json({ comments: comments || [] });
 }
