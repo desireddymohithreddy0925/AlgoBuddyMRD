@@ -359,7 +359,7 @@ export function useSheetProgress() {
           // Only apply server response if this is still the latest update
           if (updateVersionRef.current === myVersion) {
             // Update last known-good state on successful sync
-            lastSyncedProgress.current = { ...progress, [problemId]: { status: newStatus, updatedAt } };
+            lastSyncedProgress.current = { ...progressRef.current, [problemId]: { status: newStatus, updatedAt } };
             // Use server streak data returned from either path.
             if (fresh.currentStreak !== undefined) {
               setStreakData({
