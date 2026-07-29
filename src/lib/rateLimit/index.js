@@ -6,41 +6,10 @@ import { createLogger } from "../logger.js";
 const log = createLogger("rateLimit");
 
 const RATE_LIMIT_KEY_PREFIX = "rl";
-const MAX_IN_MEMORY_ENTRIES = 10000;
-const MEMORY_SWEEP_INTERVAL_MS = 60000;
 const stores = []; // { store: Map, keyPrefix: string }
 
-let memorySweepTimer = null;
-function startMemorySweeper() {
-  if (memorySweepTimer) return;
-  memorySweepTimer = setInterval(() => {
-    const now = Date.now();
-    for (const entry of stores) {
-      const store = entry.store;
-      let expired = 0;
-      for (const [key, bucket] of store.entries()) {
-        if (bucket.resetAt <= now) {
-          store.delete(key);
-          expired++;
-        }
-      }
-      if (store.size > MAX_IN_MEMORY_ENTRIES) {
-        const toEvict = store.size - MAX_IN_MEMORY_ENTRIES;
-        const iter = store.keys();
-        for (let i = 0; i < toEvict; i++) {
-          const k = iter.next().value;
-          if (k !== undefined) store.delete(k);
-        }
-        log.warn({ evicted: toEvict, storeSize: store.size + toEvict, expired }, "In-memory store exceeded limit; evicted entries.");
-      }
-      if (store.size > MAX_IN_MEMORY_ENTRIES * 0.9) {
-        log.warn({ storeSize: store.size, capacity: MAX_IN_MEMORY_ENTRIES }, "In-memory store near capacity.");
-      }
-    }
-  }, MEMORY_SWEEP_INTERVAL_MS);
-  if (memorySweepTimer.unref) memorySweepTimer.unref();
-}
-
+// Lazy per-request cleanup — Redis handles TTL expiry via EXPIRE.
+// The check() function cleans expired entries when accessed.
 const REDIS_REQUIRED = process.env.REDIS_REQUIRED === "true";
 
 const redis =
@@ -175,8 +144,6 @@ export function createRateLimiter(options) {
     if (process.env.NODE_ENV === "production" && !redis) {
       log.warn("Redis connection variables (UPSTASH_REDIS_REST_URL/TOKEN) not configured in production. Using in-memory fallback.");
     }
-
-    startMemorySweeper();
 
     const isOutage = redis && (isRedisOffline || Date.now() < redisOfflineUntil);
     const limit = isOutage ? Math.max(1, Math.floor(maxRequests * 0.5)) : maxRequests;
