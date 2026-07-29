@@ -3,13 +3,19 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, PlayCircle, Dumbbell, Swords } from "lucide-react";
+import { NAV_LINKS } from "./navLinks";
 
-const BOTTOM_NAV_LINKS = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/visualizer", label: "Visualizer", icon: PlayCircle },
-  { href: "/practice", label: "Practice", icon: Dumbbell },
-  { href: "/arena", label: "Arena", icon: Swords },
-];
+const NAV_ICONS = {
+  "/": Home,
+  "/visualizer": PlayCircle,
+  "/practice": Dumbbell,
+  "/arena": Swords,
+};
+
+const BOTTOM_NAV_LINKS = NAV_LINKS.map((link) => ({
+  ...link,
+  icon: NAV_ICONS[link.href] || Home,
+}));
 
 export default function BottomNav() {
   const pathname = usePathname();

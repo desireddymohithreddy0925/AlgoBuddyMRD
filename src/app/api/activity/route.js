@@ -20,25 +20,12 @@ export async function POST(request) {
 
     const cookieStore = await cookies();
     const supabase = getSupabaseServerClient(cookieStore);
-    const { data: existing, error: fetchError } = await supabase
-      .from("user_activity")
-      .select("type")
-      .eq("user_id", authResult.user.id)
-      .eq("activity_date", localDate)
-      .maybeSingle();
 
-    if (fetchError) return jsonResponse({ error: fetchError.message }, 500);
-
-    const mergedType = existing
-      ? Array.from(new Set([existing.type, type || "site_visit"])).join(",")
-      : (type || "site_visit");
-
-    let { data, error } = await supabase
-      .from("user_activity")
-      .upsert(
-        { user_id: authResult.user.id, activity_date: localDate, type: mergedType },
-        { onConflict: "user_id, activity_date" }
-      );
+    const { error } = await supabase.rpc('merge_activity_type', {
+      p_user_id: authResult.user.id,
+      p_activity_date: localDate,
+      p_new_type: type || 'site_visit'
+    });
 
     if (error) {
       const errorCode = error?.code;

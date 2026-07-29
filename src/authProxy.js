@@ -28,6 +28,8 @@ export async function proxy(request) {
     return supabaseResponse;
   }
 
+  let intermediateResponse = null;
+
   const supabase = createServerClient(
     supabaseConfig.supabaseUrl,
     supabaseConfig.supabaseAnonKey,
@@ -40,9 +42,9 @@ export async function proxy(request) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           );
-          supabaseResponse = NextResponse.next({ request });
+          intermediateResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, {
+            intermediateResponse.cookies.set(name, value, {
               ...options,
               secure: process.env.NODE_ENV === "production",
             }),
@@ -70,6 +72,13 @@ if (user) {
 supabaseResponse = NextResponse.next({
   request: { headers: requestHeaders },
 });
+
+if (intermediateResponse) {
+  for (const cookie of intermediateResponse.cookies.getAll()) {
+    const { name, value, ...options } = cookie;
+    supabaseResponse.cookies.set(name, value, options);
+  }
+}
   const pathname = request.nextUrl.pathname;
   if (protectedRoutes.some((route) => pathname.startsWith(route))) {
     if (error || !user) {

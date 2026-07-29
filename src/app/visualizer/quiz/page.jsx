@@ -12,7 +12,7 @@ export default function QuizPage() {
   const quizzes = [
     {
       title: "Searching Quiz",
-      description: "Practice all searching algorithms including liner search, binary search, ternary search, etc.",
+      description: "Practice all searching algorithms including linear search, binary search, ternary search, etc.",
       href: "/visualizer/array/searching/quiz",
       icon: Search,
       filename: "searching_quiz.js",
@@ -58,12 +58,26 @@ export default function QuizPage() {
         "bg-pink-600 hover:bg-pink-700 dark:bg-pink-500 dark:hover:bg-pink-600",
     },
     {
-      title: "Pattern Matching Quiz",
+      title: "String Pattern Matching Quiz",
       description:
         "Practice String algorithms including Reverse String, Palindrome Check, Character Frequency, Longest Common Prefix, Anagram Check, KMP Algorithm, Rabin-Karp, and Z Algorithm.",
       href: "/visualizer/string/pattern-matching/quiz",
       icon: Search,
       filename: "string_operations_quiz.js",
+      cardBorder: "border-pink-500/20 dark:border-pink-500/30",
+      topBarBg: "bg-pink-500/10 dark:bg-pink-500/20",
+      iconStyle:
+        "bg-pink-500/10 border border-pink-500/20 dark:border-pink-500/30 text-pink-600 dark:text-pink-400",
+      btnBg:
+        "bg-pink-600 hover:bg-pink-700 dark:bg-pink-500 dark:hover:bg-pink-600",
+    },
+    {
+      title: "String Interview Problems",
+      description:
+        "Practice frequently asked string interview problems including Longest Substring Without Repeating Characters, Minimum Window Substring, Longest Repeating Character Replacement, and more.",
+      href: "/visualizer/string/interview-problems",
+      icon: Search,
+      filename: "string_interview_problems.js",
       cardBorder: "border-pink-500/20 dark:border-pink-500/30",
       topBarBg: "bg-pink-500/10 dark:bg-pink-500/20",
       iconStyle:
@@ -359,6 +373,20 @@ export default function QuizPage() {
       btnBg:
         "bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-600",
     },
+    {
+      title: "AI Algorithms Quiz",
+      description:
+        "Test your understanding of AI algorithms including A* Search, Minimax, Alpha-Beta Pruning, and Monte Carlo Tree Search.",
+      href: "/visualizer/ai/quiz",
+      icon: Brain,
+      filename: "ai_algorithms_quiz.js",
+      cardBorder: "border-rose-500/20 dark:border-rose-500/30",
+      topBarBg: "bg-rose-500/10 dark:bg-rose-500/20",
+      iconStyle:
+        "bg-rose-500/10 border border-rose-500/20 dark:border-rose-500/30 text-rose-600 dark:text-rose-400",
+      btnBg:
+        "bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600",
+    },
   ];
   const filteredQuizzes = quizzes.filter((quiz) =>
     quiz.title.toLowerCase().includes(searchTerm.toLowerCase())
@@ -455,7 +483,7 @@ export default function QuizPage() {
           href="/visualizer"
             className="mt-16 mx-auto flex w-fit items-center gap-2 px-6 py-3 rounded-2xl border border-udemy-border dark:border-udemy-dark-border hover:border-udemy-purple hover:text-udemy-purple dark:hover:text-udemy-purple-light transition bg-white dark:hover:border-udemy-purple dark:bg-udemy-dark-surface font-medium"
         >
-          ← Back to Visulaizer
+          ← Back to Visualizer
         </Link>
       </div>
     </div>
