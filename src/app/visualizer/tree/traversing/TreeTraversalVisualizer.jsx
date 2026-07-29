@@ -639,11 +639,10 @@ export default function TreeTraversalVisualizer({ initialMode = 'in-order' }) {
                             key={`thread-${idx}`}
                             d={drawMorrisCurve(edge.x1, edge.y1, edge.x2, edge.y2)}
                             fill="none"
-                            className="stroke-purple-400 dark:stroke-purple-400"
+                            className="stroke-purple-400 dark:stroke-purple-400 animate-pulse"
                             strokeWidth="2.5"
                             strokeDasharray="6,4"
                             markerEnd="url(#arrow-morris)"
-                            className="animate-pulse"
                           />
                         );
                       }
