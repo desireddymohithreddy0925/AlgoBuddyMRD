@@ -12,7 +12,8 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const unreadOnly = searchParams.get("unreadOnly") === "true";
     const page = parseInt(searchParams.get("page")) || 1;
-    const limit = parseInt(searchParams.get("limit")) || 20;
+    const MAX_LIMIT = 100;
+    const limit = Math.min(Math.max(parseInt(searchParams.get("limit")) || 20, 1), MAX_LIMIT);
     const skip = (page - 1) * limit;
 
     const cookieStore = await cookies();
@@ -110,14 +111,16 @@ export async function PATCH(request) {
     // the authenticated user. The .eq("student_id", ...) above ensures the
     // operation is always scoped to the requesting user.
 
-    const { error, count } = await query;
+    const { data: updatedRows, error, count } = await query.select("id");
 
     if (error) {
       console.error("[/api/notifications PATCH] Supabase error:", error.message);
       return jsonResponse({ error: error.message }, 500);
     }
 
-    return jsonResponse({ success: true, updated: count ?? 0 });
+    const updated = Array.isArray(updatedRows) ? updatedRows.length : count ?? 0;
+
+    return jsonResponse({ success: true, updated });
   } catch (error) {
     return errorResponse(error);
   }

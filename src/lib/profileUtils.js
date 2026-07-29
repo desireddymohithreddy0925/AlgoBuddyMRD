@@ -43,6 +43,8 @@ export const ONBOARDING_CODING_FIELDS = CODING_PLATFORMS.map(
   ([, usernameField, usernameLabel]) => [usernameField, usernameLabel.replace(" Username", "").replace(" Handle", ""), "username"],
 );
 
+export const ONBOARDING_REQUIRED_FIELDS = ["name", "skills"];
+
 export const EMPTY_PROFILE_FORM = {
   name: "",
   branch: "",
@@ -87,8 +89,13 @@ export const sanitizeProfileLinks = (data) => {
   const nextData = { ...data };
 
   for (const field of PROFILE_URL_FIELDS) {
-    if (!nextData[field]) continue;
-    const safeUrl = safeExternalUrl(nextData[field]);
+    const rawValue = typeof nextData[field] === "string" ? nextData[field].trim() : nextData[field];
+    if (!rawValue) {
+      nextData[field] = "";
+      continue;
+    }
+
+    const safeUrl = safeExternalUrl(rawValue);
     if (!safeUrl) {
       return { error: "Please enter valid http or https URLs for profile links." };
     }
@@ -135,19 +142,17 @@ export const normalizeProfilePayload = (data) => ({
 export const validateProfileForm = (formData, mode = "edit") => {
   if (mode !== "onboarding") return null;
 
-  if (!formData.name?.trim()) {
-    return "Full name is required.";
-  }
-
-  if (!formData.skills?.trim()) {
-    return "Bio is required.";
+  for (const field of ONBOARDING_REQUIRED_FIELDS) {
+    if (!formData[field]?.trim()) {
+      return field === "name" ? "Full name is required." : "Bio is required.";
+    }
   }
 
   return null;
 };
 
 export const isOnboardingStep1Valid = (formData) =>
-  Boolean(formData.name?.trim() && formData.skills?.trim());
+  ONBOARDING_REQUIRED_FIELDS.every((field) => Boolean(formData[field]?.trim()));
 
 export const shouldShowProfileSetup = (user) => {
   if (!user) return false;

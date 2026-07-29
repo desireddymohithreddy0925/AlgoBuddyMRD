@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/features/user/UserContext";
 import { supabase } from "@/lib/supabase";
+import { useTheme } from "@/app/hooks/useTheme";
 import {
   Search,
   Moon,
@@ -24,25 +25,6 @@ import ProfileProgress from "./ui/ProfileProgress";
 import BottomNav from "./BottomNav";
 
 const MAX_AVATAR_URL_LENGTH = 512;
-
-function getStoredTheme() {
-  if (typeof window === "undefined") return "light";
-
-  const saved = window.localStorage.getItem("theme");
-  if (saved === "dark" || saved === "light") return saved;
-
-  return document.documentElement.classList.contains("dark")
-    ? "dark"
-    : "light";
-}
-
-function applyTheme(nextTheme) {
-  document.documentElement.classList.toggle(
-    "dark",
-    nextTheme === "dark"
-  );
-  window.localStorage.setItem("theme", nextTheme);
-}
 
 function getInitials(name) {
   if (!name) return "??";
@@ -65,50 +47,79 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [theme, setTheme] = useState("light");
-  const [themeMounted, setThemeMounted] = useState(false);
+  const { theme, mounted: themeMounted, toggleTheme } = useTheme();
   const pathname = usePathname();
   const router = useRouter();
- 
+  
   const { user, setUser } = useUser();
   const userRef = useRef(null);
+  const scrollProgressRef = useRef(null);
+  const scrollAnimationFrameRef = useRef(null);
   const avatarSrc = safeAvatarUrl(
     user?.user_metadata?.avatar_url || user?.user_metadata?.picture
   );
   const displayName = user?.user_metadata?.name || "AlgoBuddy User";
 
   useEffect(() => {
-    const currentTheme = getStoredTheme();
-    setTheme(currentTheme);
-    applyTheme(currentTheme);
-    setThemeMounted(true);
-  }, []);
+    const updateScrollState = () => {
+      if (scrollAnimationFrameRef.current) {
+        cancelAnimationFrame(scrollAnimationFrameRef.current);
+      }
 
-  const toggleTheme = () => {
-    setTheme((currentTheme) => {
-      const resolvedTheme = themeMounted
-        ? currentTheme
-        : getStoredTheme();
+      scrollAnimationFrameRef.current = window.requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 4);
 
-      const nextTheme =
-        resolvedTheme === "light" ? "dark" : "light";
+        const scrollElement = document.scrollingElement || document.documentElement;
+        const scrollableDistance = Math.max(
+          scrollElement.scrollHeight - window.innerHeight,
+          0
+        );
+        const scrollProgress = scrollableDistance > 0
+          ? Math.min(window.scrollY / scrollableDistance, 1)
+          : 0;
 
-      applyTheme(nextTheme);
-      setThemeMounted(true);
+        if (scrollProgressRef.current) {
+          scrollProgressRef.current.style.setProperty(
+            "--scroll-progress",
+            String(scrollProgress)
+          );
+          scrollProgressRef.current.style.transform = `scaleX(${scrollProgress})`;
+        }
+      });
+    };
 
-      return nextTheme;
-    });
-  };
+    updateScrollState();
+    window.addEventListener("scroll", updateScrollState, { passive: true });
+    window.addEventListener("resize", updateScrollState);
+
+    return () => {
+      window.removeEventListener("scroll", updateScrollState);
+      window.removeEventListener("resize", updateScrollState);
+
+      if (scrollAnimationFrameRef.current) {
+        cancelAnimationFrame(scrollAnimationFrameRef.current);
+      }
+    };
+  }, [pathname]);
 
   useEffect(() => {
-    const handleScroll = () =>
-      setScrolled(window.scrollY > 4);
+    if (scrollProgressRef.current) {
+      const scrollElement = document.scrollingElement || document.documentElement;
+      const scrollableDistance = Math.max(
+        scrollElement.scrollHeight - window.innerHeight,
+        0
+      );
+      const scrollProgress = scrollableDistance > 0
+        ? Math.min(window.scrollY / scrollableDistance, 1)
+        : 0;
 
-    window.addEventListener("scroll", handleScroll);
-
-    return () =>
-      window.removeEventListener("scroll", handleScroll);
-  }, []);
+      scrollProgressRef.current.style.setProperty(
+        "--scroll-progress",
+        String(scrollProgress)
+      );
+      scrollProgressRef.current.style.transform = `scaleX(${scrollProgress})`;
+    }
+  }, [pathname]);
 
   useEffect(() => {
     const fn = (e) => {
@@ -200,11 +211,26 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-[9998] h-[72px] bg-white dark:bg-udemy-dark-bg flex items-center transition-all duration-200 ${scrolled
+        className={`fixed top-0 left-0 right-0 z-[9998] h-[72px] bg-white dark:bg-udemy-dark-bg flex items-center transition-all duration-200 relative ${scrolled
             ? "border-b border-surface-200 dark:border-udemy-dark-border shadow-sm"
             : "border-b border-transparent"
           }`}
       >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] overflow-hidden"
+        >
+          <div
+            ref={scrollProgressRef}
+            className="h-full w-full origin-left bg-[var(--color-primary)] transition-transform duration-150 ease-out motion-reduce:transition-none"
+            style={{
+              willChange: "transform",
+              "--scroll-progress": 0,
+              transform: "scaleX(0)",
+            }}
+          />
+        </div>
+
         <div className="w-full max-w-[1200px] mx-auto px-8 flex items-center justify-between h-full">
           <Link
             href="/"
@@ -257,7 +283,7 @@ export default function Navbar() {
                   {avatarSrc ? (
                     <Image
                       src={avatarSrc}
-                      alt="avatar"
+                      alt={`${displayName}'s avatar`}
                       width={28}
                       height={28}
                       unoptimized
@@ -272,7 +298,7 @@ export default function Navbar() {
                   <span className="max-w-28 truncate text-sm font-semibold">
                     {displayName}
                   </span>
-                  <ChevronDown className="w-3.5 h-3.5 text-surface-500" />
+                  <ChevronDown className="w-3.5 h-3.5 text-surface-500" aria-hidden="true" />
                 </button>
 
                 {userMenuOpen && (
@@ -399,15 +425,15 @@ export default function Navbar() {
               onClick={() =>
                 setMenuOpen((o) => !o)
               }
-              aria-label="Toggle menu"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
-              className="hidden"
+              className="w-10 h-10 flex items-center justify-center text-surface-600 dark:text-surface-400 rounded-lg hover:bg-surface-100 dark:hover:bg-udemy-dark-surface transition-colors focus-ring"
             >
               {menuOpen ? (
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5" aria-hidden="true" />
               ) : (
-                <Menu className="w-5 h-5" />
+                <Menu className="w-5 h-5" aria-hidden="true" />
               )}
             </button>
           </div>

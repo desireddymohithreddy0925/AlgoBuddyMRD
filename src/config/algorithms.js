@@ -1601,6 +1601,22 @@ export const algorithmRegistry = {
 },
     component: dynamic(() => import('@/app/visualizer/tree/advanced/segment/AlgorithmClient')),
   },
+  "tree/advanced/segment-2d": {
+    metadata: {
+  title: "2D Segment Tree Visualizer | Interactive Matrix Range Query & Point Updates | AlgoBuddy",
+  description:
+    "Explore 2D Segment Tree (Tree of Trees) structures, dynamic grid queries, matrix builds, and point updates step-by-step with interactive grid animations, explanations, and quizzes.",
+  keywords: [
+    "2D Segment Tree",
+    "Matrix Range Query",
+    "Grid Point Update",
+    "DSA Tree Animations",
+    "Tree of Trees"
+  ],
+  robots: "index, follow",
+},
+    component: dynamic(() => import('@/app/visualizer/tree/advanced/segment-2d/AlgorithmClient')),
+  },
   "tree/advanced/trie": {
     metadata: {
   title: "Trie (Prefix Tree) Visualizer | Interactive Word Search & Autocomplete | AlgoBuddy",

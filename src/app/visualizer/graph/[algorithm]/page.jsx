@@ -19,6 +19,7 @@ export async function generateStaticParams() {
     { algorithm: "ford-fulkerson" },
     { algorithm: "adjacency-list" },
     { algorithm: "adjacency-matrix" },
+    { algorithm: "a-star" },
   ];
 }
 
