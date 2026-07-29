@@ -4,6 +4,10 @@ import { validateCsrfOrigin } from '@/lib/csrfConstants';
 
 const MAX_COMMENT_LENGTH = 2000;
 
+function stripHtml(str) {
+  return str.replace(/<[^>]*>/g, '');
+}
+
 export async function POST(req) {
   if (!validateCsrfOrigin(req)) {
     return Response.json({ error: "CSRF validation failed: untrusted origin" }, { status: 403 });
@@ -25,7 +29,7 @@ export async function POST(req) {
       return Response.json({ error: 'topic_id is required' }, { status: 400 });
     }
 
-    const trimmedContent = String(content || '').trim();
+    const trimmedContent = stripHtml(String(content || '').trim());
     if (!trimmedContent) {
       return Response.json({ error: 'content cannot be empty' }, { status: 400 });
     }

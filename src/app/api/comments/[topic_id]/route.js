@@ -1,6 +1,10 @@
 import { cookies } from 'next/headers';
 import { getSupabaseServerClient } from '@/lib/serverApi';
 
+function stripHtml(str) {
+  return str.replace(/<[^>]*>/g, '');
+}
+
 export async function GET(req, { params }) {
   const { topic_id } = await params;
   const cookieStore = await cookies();
