@@ -142,6 +142,7 @@ export const sections = [
           { name: "Call Stack Visualization", path: "/visualizer/recursion/stack" },
           { name: "Recursive Binary Search", path: "/visualizer/recursion/binary-search" },
           { name: "Tower of Hanoi", path: "/visualizer/recursion/tower-of-hanoi" },
+          { name: "Tail Recursion", path: "/visualizer/recursion/tail-recursion" },
         ],
       },
     ],
