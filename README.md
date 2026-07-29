@@ -621,7 +621,7 @@ Ask questions, share ideas, show off your contributions, and connect with fellow
 
 If AlgoBuddy helped you learn, please consider giving it a ⭐ — it means a lot!
 
-[![Star History Chart](https://api.star-history.com/svg?repos=PankajSingh34/AlgoBuddy&type=Date)](https://star-history.com/#PankajSingh34/AlgoBuddy&Date)
+[![Stars over time](https://img.shields.io/github/stars/PankajSingh34/AlgoBuddy?style=for-the-badge&logo=github&color=f59e0b)](https://star-history.com/#PankajSingh34/AlgoBuddy)
 
 </div>
 
