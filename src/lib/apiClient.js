@@ -130,7 +130,14 @@ class ApiClient {
       throw new AuthError("Session expired");
     }
 
-    const data = await res.json();
+    let data = {};
+    if (res.status !== 204 && res.status !== 205) {
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+    }
 
     if (!res.ok) {
       if (
