@@ -600,6 +600,8 @@ export default function GraphVisualizer({ algorithm = "bfs", startNode: initialS
   useVisualizerKeyboard({
     onStart: togglePlay,
     onTogglePlayPause: togglePlay,
+    onStepForward: stepForward,
+    onStepBackward: stepBackward,
     sorting: engine.isPlaying || engine2.isPlaying,
     onReset: reset,
     speed: engine.speed / 1000,
