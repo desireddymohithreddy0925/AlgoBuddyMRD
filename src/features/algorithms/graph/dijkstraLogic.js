@@ -22,6 +22,7 @@ export function* dijkstraGenerator(adj, startNode, targetNode = null) {
     pq: [...pq],
     currentNode: startNode,
     description: `Initializing Dijkstra: start node ${startNode} distance set to 0`,
+    line: 3,
   };
 
   while (pq.length > 0) {
@@ -40,6 +41,7 @@ export function* dijkstraGenerator(adj, startNode, targetNode = null) {
       pq: [...pq],
       currentNode: u,
       description: `Processing node ${u} with current shortest distance ${d}`,
+      line: 6,
     };
 
     if (targetNode && String(u) === String(targetNode)) {
@@ -51,6 +53,7 @@ export function* dijkstraGenerator(adj, startNode, targetNode = null) {
         pq: [...pq],
         currentNode: u,
         description: `Target node ${u} reached! Shortest path distance is ${d}.`,
+        line: 6,
       };
       return; // Early exit
     }
@@ -58,7 +61,7 @@ export function* dijkstraGenerator(adj, startNode, targetNode = null) {
     const neighbors = adj[u] || [];
     for (const edge of neighbors) {
       const v = edge.node;
-      const weight = edge.weight;
+      const weight = Number(edge.weight);
 
       if (!visited.has(v)) {
         const newDist = distances[u] + weight;
@@ -71,6 +74,7 @@ export function* dijkstraGenerator(adj, startNode, targetNode = null) {
           pq: [...pq],
           currentNode: u,
           description: `Checking edge ${u} -> ${v} (weight: ${weight})`,
+          line: 8,
         };
 
         if (newDist < distances[v]) {
@@ -85,11 +89,15 @@ export function* dijkstraGenerator(adj, startNode, targetNode = null) {
             pq: [...pq],
             currentNode: u,
             description: `Relaxed distance to ${v}: ${newDist}`,
+            line: 10,
           };
         }
       }
     }
   }
+
+  const allNodesCount = Object.keys(adj).length;
+  const isDisconnected = visited.size < allNodesCount;
 
   yield {
     visitedNodes: new Set(visited),
@@ -98,6 +106,11 @@ export function* dijkstraGenerator(adj, startNode, targetNode = null) {
     distances: { ...distances },
     pq: [],
     currentNode: null,
-    description: `Dijkstra's algorithm complete`,
+    description: (targetNode && !visited.has(targetNode))
+      ? `Target node ${targetNode} is unreachable (disconnected graph).`
+      : isDisconnected
+        ? `Queue exhausted. Graph is disconnected (${allNodesCount - visited.size} nodes unreachable).`
+        : `Dijkstra's algorithm complete`,
+    line: 5,
   };
 }

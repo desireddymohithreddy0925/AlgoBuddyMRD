@@ -3,6 +3,7 @@
 import React from "react";
 import { 
   ArrowLeft, 
+  Home,
   Layers, 
   ListTodo, 
   GitMerge, 
@@ -33,7 +34,7 @@ export default function PracticeSidebar({
   onBackToPractice
 }) {
   const navItems = [
-    { id: "problem-list", label: "Problem List", icon: ListTodo },
+    { id: "practice-home", label: "Practice Home", icon: Home },
     { id: "dashboard",    label: "Progress",     icon: Layers },
     { id: "my-sheet",     label: "My Sheet",     icon: ScrollText, badge: mySheetCount > 0 ? mySheetCount : null },
     { id: "topic-wise",   label: "Topic-wise",   icon: GitMerge },

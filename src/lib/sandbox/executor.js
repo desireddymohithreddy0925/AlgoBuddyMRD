@@ -1,6 +1,9 @@
 const ivm = require("isolated-vm");
+const pino = require("pino");
 const { EXECUTION_STATUS } = require("./errorCodes");
 const { MAX_TIMEOUT_MS, MAX_MEMORY_MB, MAX_OUTPUT_LENGTH } = require("./sandbox.config");
+
+const log = pino({ level: process.env.LOG_LEVEL ?? (process.env.NODE_ENV === "production" ? "info" : "debug") }).child({ module: "sandbox" });
 
 // Sanitize error messages to prevent information leakage
 function sanitizeError(err) {
@@ -58,14 +61,17 @@ function releaseIsolate(isolate) {
 
 async function executeCode(code) {
   const startTime = Date.now();
-  const executionId = `exec_${Date.now()}_${globalThis.crypto.randomUUID().split('-')[0]}`;
+  const uuidPart = typeof globalThis !== "undefined" && globalThis.crypto?.randomUUID
+    ? globalThis.crypto.randomUUID().split("-")[0]
+    : Math.random().toString(36).substring(2, 10);
+  const executionId = `exec_${Date.now()}_${uuidPart}`;
   let isolate = null;
   let context = null;
   let isolateCorrupted = false;
 
   try {
     // Audit log: execution started
-    console.log(`[sandbox:audit] Execution started: ${executionId}, codeLength: ${code.length}, isolation: isolated-vm`);
+    log.info({ executionId, codeLength: code.length, isolation: "isolated-vm" }, "Execution started");
 
     // Acquire an isolate from the pool
     isolate = await acquireIsolate();
@@ -73,7 +79,9 @@ async function executeCode(code) {
     // Create a context within the isolate
     context = await isolate.createContext();
 
-    // Create a copy of the code that wraps console.log to capture output
+    // Set user code as a global in the context to prevent injection and escaping issues
+    await context.global.set("__userCode__", code);
+
     const wrappedCode = `
       (function() {
         const outputLines = [];
@@ -92,7 +100,7 @@ async function executeCode(code) {
           },
         };
         
-        ${code}
+        eval(__userCode__);
         
         return outputLines.join("\\n");
       })()
@@ -116,7 +124,7 @@ async function executeCode(code) {
     const executionTime = Date.now() - startTime;
 
     // Audit log: execution completed successfully
-    console.log(`[sandbox:audit] Execution completed: ${executionId}, status: SUCCESS, time: ${executionTime}ms, isolation: isolated-vm`);
+    log.info({ executionId, status: "SUCCESS", executionTimeMs: executionTime, isolation: "isolated-vm" }, "Execution completed");
 
     return {
       status: EXECUTION_STATUS.SUCCESS,
@@ -128,12 +136,19 @@ async function executeCode(code) {
   } catch (err) {
     const elapsed = Date.now() - startTime;
     const sanitizedMessage = sanitizeError(err);
-    isolateCorrupted = true;
+
+    // SECURITY/PERF: only genuine VM-level failures leave the isolate in a
+    // state we can no longer trust. An ordinary throw/ReferenceError/etc.
+    // from user code is caught cleanly by isolated-vm and does NOT corrupt
+    // the isolate 
+    const isTimeout = err.code === "ISOLATED_VM_SCRIPT_TIMEOUT" || err.message?.includes("timed out");
+    const isMemoryLimit = err.code === "ISOLATED_VM_MEMORY_LIMIT_EXCEEDED" || err.message?.includes("memory");
+    isolateCorrupted = isTimeout || isMemoryLimit;
 
     // Audit log: execution failed
-    console.log(`[sandbox:audit] Execution failed: ${executionId}, status: ${err.code || 'ERROR'}, time: ${elapsed}ms, error: ${sanitizedMessage}, isolation: isolated-vm`);
+    log.warn({ executionId, status: err.code ?? "ERROR", executionTimeMs: elapsed, error: sanitizedMessage, isolation: "isolated-vm", isolateCorrupted }, "Execution failed");
 
-    if (err.code === "ISOLATED_VM_SCRIPT_TIMEOUT" || err.message?.includes("timed out")) {
+    if (isTimeout) {
       return {
         status: EXECUTION_STATUS.TLE,
         output: "",
@@ -143,7 +158,7 @@ async function executeCode(code) {
       };
     }
 
-    if (err.code === "ISOLATED_VM_MEMORY_LIMIT_EXCEEDED" || err.message?.includes("memory")) {
+    if (isMemoryLimit) {
       return {
         status: EXECUTION_STATUS.MLE,
         output: "",
@@ -153,6 +168,9 @@ async function executeCode(code) {
       };
     }
 
+    // Ordinary runtime error from user code — the isolate itself is fine
+    // and goes back to the pool (see `finally` below); only the script
+    // execution failed.
     let errorMessage = sanitizedMessage;
     if (err.name && err.name !== "Error" && !errorMessage.startsWith(err.name)) {
       errorMessage = `${err.name}: ${errorMessage}`;
@@ -176,7 +194,12 @@ async function executeCode(code) {
     // Dispose corrupted isolates; return healthy ones to pool
     if (isolate) {
       if (isolateCorrupted) {
-        disposeIsolate(isolate);
+        try {
+          isolate.dispose();
+        } catch {
+          // Already disposed — don't double-dispose
+        }
+        activeIsolateCount--;
         releaseIsolate(createIsolate());
       } else {
         releaseIsolate(isolate);
@@ -188,15 +211,31 @@ async function executeCode(code) {
 // Clean up function for graceful shutdown
 async function cleanup() {
   isShuttingDown = true;
-  // Drain wait queue so waiting acquireIsolate calls throw
-  waitQueue.splice(0).forEach(resolve => {
-    try { resolve(); } catch {}
+  const shutdownError = new Error("Sandbox is shutting down");
+
+  // Reject all waiters
+  waitQueue.splice(0).forEach(reject => {
+    try { reject(shutdownError); } catch {}
   });
-  for (const isolate of pool) {
-    try { isolate.dispose(); } catch {}
-  }
-  pool.length = 0;
-  activeIsolateCount = 0;
+
+  // Wait for in-flight executions to finish before disposing isolates
+  const waitForDrain = () => new Promise(resolve => {
+    const check = () => {
+      if (activeIsolateCount <= pool.length) {
+        for (const isolate of pool) {
+          try { isolate.dispose(); } catch {}
+        }
+        pool.length = 0;
+        activeIsolateCount = 0;
+        resolve();
+      } else {
+        setTimeout(check, 50);
+      }
+    };
+    check();
+  });
+
+  await waitForDrain();
 }
 
 module.exports = { executeCode, cleanup };

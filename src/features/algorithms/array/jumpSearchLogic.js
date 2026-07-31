@@ -36,6 +36,7 @@ export function* jumpSearchGenerator(arr, targetValue) {
     step += stepSize;
 
     if (prev >= n) {
+      yield { type: "out_of_bounds" };
       yield {
         type: "not_found",
       };

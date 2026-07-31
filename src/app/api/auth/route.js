@@ -62,42 +62,8 @@ function releaseMemoryLock(key) {
   memoryLocks.delete(key);
 }
 
-// Periodic sweeper to clean up expired entries (replaces probabilistic GC)
-const MEMORY_SWEEP_INTERVAL_MS = 60_000;
-let memorySweepTimer = null;
-
-function startMemorySweeper() {
-  if (memorySweepTimer) return;
-  memorySweepTimer = setInterval(() => {
-    const now = Date.now();
-    for (const [k, until] of memoryLockouts.entries()) {
-      if (until <= now) memoryLockouts.delete(k);
-    }
-    for (const [k, bucket] of memoryFailures.entries()) {
-      if (bucket.resetAt <= now) memoryFailures.delete(k);
-    }
-    // memoryLockouts is exempt from size-based eviction to prevent brute-force
-    // bypass (an attacker flooding dummy emails should not flush a target's lockout).
-    // OOM risk is low since lockouts require 5 consecutive failures before creation.
-    // memoryFailures gets size limits to bound the higher-volume failure tracking.
-    if (memoryFailures.size > MAX_MEMORY_FAILURES) {
-      const toEvict = memoryFailures.size - MAX_MEMORY_FAILURES;
-      const iter = memoryFailures.keys();
-      for (let i = 0; i < toEvict; i++) {
-        const k = iter.next().value;
-        if (k !== undefined) memoryFailures.delete(k);
-      }
-      console.warn(`[auth] Evicted ${toEvict} failure entries: exceeded ${MAX_MEMORY_FAILURES} limit`);
-    }
-    const totalMemoryEntries = memoryLockouts.size + memoryFailures.size + memoryLocks.size;
-    if (totalMemoryEntries > 0) {
-      console.log(`[auth] Memory state: lockouts=${memoryLockouts.size}, failures=${memoryFailures.size}, locks=${memoryLocks.size}`);
-    }
-  }, MEMORY_SWEEP_INTERVAL_MS);
-  if (memorySweepTimer.unref) memorySweepTimer.unref();
-}
-
-startMemorySweeper();
+// Lazy per-request cleanup — Redis handles TTL expiry, in-memory Maps are per-instance.
+// No module-level setInterval needed.
 
 const redis =
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
@@ -333,7 +299,17 @@ export async function POST(req) {
       });
 
       if (error) {
-        return jsonResponse({ success: false, message: error.message }, 400);
+        if (error.message.includes("already") || error.code === "email_exists") {
+          return jsonResponse({
+            success: true,
+            message: "Signup request received. If the email is not registered, a verification link has been sent.",
+          });
+        }
+        console.error("[/api/auth/signup] Supabase createUser error:", error.message, error.code);
+        return jsonResponse({
+          success: false,
+          message: "Unable to create account. Please try again later.",
+        }, 400);
       }
 
       if (emailConfirm) {

@@ -40,7 +40,7 @@ export default function generateLearningReminders({
     new Set((activityDates || []).map(normalizeDateString).filter(Boolean))
   ).sort();
 
-  const lastDate = uniqueDates.length ? new Date(uniqueDates[uniqueDates.length - 1]) : null;
+  const lastDate = uniqueDates.length ? uniqueDates[uniqueDates.length - 1] : null;
   const daysSinceLast = lastDate ? daysBetween(lastDate, today) : Infinity;
 
   // simple current streak approximation (consecutive days ending today or yesterday)

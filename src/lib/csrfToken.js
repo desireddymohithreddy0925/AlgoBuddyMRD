@@ -1,5 +1,10 @@
+import { createLogger } from "./logger.js";
+
+const log = createLogger("csrf");
+
 const CSRF_TOKEN_LENGTH = 32;
 const CSRF_SECRET_ENV = "CSRF_SECRET";
+const CSRF_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
 let devSecret = null;
 
@@ -17,10 +22,7 @@ function getSecret() {
     devSecret = Array.from(array)
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
-    console.warn(
-      "CSRF_SECRET not set. Using a fallback development secret. " +
-      "Set CSRF_SECRET in .env.local for persistence and security in production.",
-    );
+    log.warn("CSRF_SECRET not set. Using a fallback development secret. Set CSRF_SECRET in .env.local for persistence and security in production.");
   }
   return devSecret;
 }
@@ -32,6 +34,7 @@ export async function generateCsrfToken() {
   const randomValue = Array.from(array)
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+  const timestamp = Date.now().toString(36);
   const encoder = new TextEncoder();
   const key = await globalThis.crypto.subtle.importKey(
     "raw",
@@ -40,18 +43,22 @@ export async function generateCsrfToken() {
     false,
     ["sign"],
   );
-  const sigBytes = await globalThis.crypto.subtle.sign("HMAC", key, encoder.encode(randomValue));
+  const sigBytes = await globalThis.crypto.subtle.sign("HMAC", key, encoder.encode(`${randomValue}:${timestamp}`));
   const signature = Array.from(new Uint8Array(sigBytes))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
-  return `${randomValue}.${signature}`;
+  return `${randomValue}.${timestamp}.${signature}`;
 }
 
 export async function validateCsrfTokenEdge(token) {
   if (!token || typeof token !== "string") return false;
   const parts = token.split(".");
-  if (parts.length !== 2) return false;
-  const [randomValue, signature] = parts;
+  if (parts.length !== 3) return false;
+  const [randomValue, timestamp, signature] = parts;
+
+  const tokenAge = Date.now() - parseInt(timestamp, 36);
+  if (tokenAge > CSRF_TOKEN_TTL_MS || tokenAge < 0) return false;
+
   const secret = getSecret();
   const encoder = new TextEncoder();
   const key = await globalThis.crypto.subtle.importKey(
@@ -61,7 +68,7 @@ export async function validateCsrfTokenEdge(token) {
     false,
     ["sign"],
   );
-  const sigBytes = await globalThis.crypto.subtle.sign("HMAC", key, encoder.encode(randomValue));
+  const sigBytes = await globalThis.crypto.subtle.sign("HMAC", key, encoder.encode(`${randomValue}:${timestamp}`));
   const expected = Array.from(new Uint8Array(sigBytes))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");

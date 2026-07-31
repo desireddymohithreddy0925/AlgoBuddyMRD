@@ -29,6 +29,29 @@ const heatLevelClass = {
   4: "bg-violet-600 dark:bg-violet-500",
 };
 
+const heatLevelRange = {
+  0: "0 problems",
+  1: "1-2 problems",
+  2: "3-4 problems",
+  3: "5-6 problems",
+  4: "7+ problems",
+};
+
+function HeatmapLegend() {
+  return (
+    <div className="flex items-center justify-end gap-1.5 text-[10px] font-bold text-slate-500 dark:text-neutral-400 sm:text-xs">
+      <span>Less</span>
+      {[0, 1, 2, 3, 4].map((level) => (
+        <span
+          key={level}
+          title={heatLevelRange[level]}
+          className={`h-2.5 w-2.5 rounded-[3px] sm:h-3 sm:w-3 sm:rounded-[4px] ${heatLevelClass[level]}`}
+        />
+      ))}
+      <span>More</span>
+    </div>
+  );
+}
 const allPracticeProblems = practiceData.flatMap((topic) =>
   topic.subsections.flatMap((section) =>
     section.items.map((item) => ({
@@ -163,25 +186,94 @@ export default function ProfilePage() {
     };
   }, [completedEntries, progressEntries, streakData?.monthlySolved]);
 
-  const activitySummary = useMemo(() => {
-    const heatmapData = Array.from({ length: 343 }, (_, index) => {
-      const wave = Math.sin(index / 9) + Math.cos(index / 17);
-      const activityChance = 0.42 + wave * 0.08;
-      const activityRoll = seededRandom(index + 1);
-      const levelRoll = seededRandom(index + 101);
+  const [activities, setActivities] = useState([]);
+  const [loadingActivities, setLoadingActivities] = useState(true);
 
-      if (activityRoll > activityChance) return 0;
-      if (levelRoll > 0.74) return 4;
-      if (levelRoll > 0.58) return 3;
-      if (levelRoll > 0.38) return 2;
-      return 1;
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    async function fetchActivities() {
+      try {
+        const response = await fetch("/api/activity?days=365");
+        if (response.ok) {
+          const data = await response.json();
+          if (active) setActivities(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch activities:", error);
+      } finally {
+        if (active) setLoadingActivities(false);
+      }
+    }
+    fetchActivities();
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
+  const activitySummary = useMemo(() => {
+    const activityMap = {};
+
+    // Helper to format Date objects as local YYYY-MM-DD strings
+    const getLocalDateString = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    // 1. Add general site/visualizer activities
+    activities.forEach((act) => {
+      if (act.activity_date) {
+        activityMap[act.activity_date] = (activityMap[act.activity_date] || 0) + 1;
+      }
     });
+
+    // 2. Add practice completions (giving solved problems higher weight)
+    completedEntries.forEach((entry) => {
+      if (entry.updatedAt) {
+        const dateStr = getLocalDateString(entry.updatedAt);
+        activityMap[dateStr] = (activityMap[dateStr] || 0) + 2;
+      }
+    });
+
+    const today = new Date();
+    const heatmapData = Array.from({ length: 343 }, (_, index) => {
+      // Calculate date of the cell relative to today (index 342 is today)
+      const d = new Date(today);
+      d.setDate(today.getDate() - (342 - index));
+      const dateStr = getLocalDateString(d);
+
+      const score = activityMap[dateStr] || 0;
+      if (score === 0) return 0;
+      if (score === 1) return 1;
+      if (score === 2) return 2;
+      if (score === 3) return 3;
+      return 4;
+    });
+
+    const monthLabels = [];
+    let lastMonth = -1;
+    for (let col = 0; col < 49; col++) {
+      const dayIndex = col * 7;
+      const d = new Date(today);
+      d.setDate(today.getDate() - (342 - dayIndex));
+      const month = d.getMonth();
+      if (month !== lastMonth) {
+        monthLabels.push({
+          name: d.toLocaleDateString("en-US", { month: "short" }),
+          colIndex: col,
+        });
+        lastMonth = month;
+      }
+    }
 
     return {
       heatmapData,
+      monthLabels,
       activeDays: heatmapData.filter((level) => level > 0).length,
     };
-  }, []);
+  }, [activities, completedEntries]);
 
   const dsaProgress = useMemo(
     () =>
@@ -720,7 +812,7 @@ export default function ProfilePage() {
             <div className="min-w-0 pb-1">
               <div className="flex items-start gap-2 sm:gap-3">
                 <div className="mt-7 grid shrink-0 grid-rows-7 gap-1 text-[10px] font-bold leading-3 text-slate-500 dark:text-neutral-400 sm:gap-1.5 sm:text-xs sm:leading-4">
-                  {["Mon", "", "Tue", "", "Wed", "", "Sun"].map((day, index) => (
+                  {["Mon", "", "Wed", "", "Fri", "", "Sun"].map((day, index) => (
                     <span key={`${day}-${index}`} className="flex h-2.5 items-center sm:h-3">
                       {day}
                     </span>
@@ -728,10 +820,21 @@ export default function ProfilePage() {
                 </div>
                 <div className="min-w-0 flex-1 overflow-x-auto pb-2 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-700">
                   <div className="w-max">
-                    <div className="mb-2 grid grid-cols-7 text-xs font-bold text-slate-400 dark:text-neutral-500">
-                      {["Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((month) => (
-                        <span key={month} className="text-center">
-                          {month}
+                    <div className="relative mb-2 h-4 w-[682px] text-[10px] font-bold text-slate-400 dark:text-neutral-500 sm:w-[876px] sm:text-xs">
+                      {activitySummary.monthLabels.map((lbl, idx) => (
+                        <span key={idx}>
+                          <span
+                            className="absolute sm:hidden"
+                            style={{ left: `${lbl.colIndex * 14}px` }}
+                          >
+                            {lbl.name}
+                          </span>
+                          <span
+                            className="absolute hidden sm:inline"
+                            style={{ left: `${lbl.colIndex * 18}px` }}
+                          >
+                            {lbl.name}
+                          </span>
                         </span>
                       ))}
                     </div>
@@ -739,14 +842,19 @@ export default function ProfilePage() {
                       {activitySummary.heatmapData.map((level, index) => (
                         <span
                           key={index}
+                          title={heatLevelRange[level]}
                           className={`h-2.5 w-2.5 rounded-[3px] sm:h-3 sm:w-3 sm:rounded-[4px] ${heatLevelClass[level]}`}
                         />
-                      ))}
+                    ))}
+                    </div>
+                    <div className="mt-3">
+                      <HeatmapLegend />
+                    </div>
+    
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
             <div className="grid content-center gap-4 border-t border-slate-100 pt-4 dark:border-neutral-800 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
               {[
                 [Code2, formatNumber(realStats.solvedCount), "Solved Problems", "text-violet-600 bg-violet-50 dark:bg-violet-950/40 dark:text-violet-300"],
@@ -763,9 +871,9 @@ export default function ProfilePage() {
               ))}
             </div>
           </div>
-        </section>
+      </section>
 
-        <section className="grid gap-6 lg:grid-cols-2 xl:grid-cols-[1.35fr_0.75fr_1fr]">
+        <section data-pr-fix="complete-classnames" className="grid gap-6 lg:grid-cols-2 xl:grid-cols-[1.35fr_0.75fr_1fr]">
           <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.05)] transition-colors dark:border-neutral-800 dark:bg-neutral-900 dark:shadow-none">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-base font-black">My Projects</h2>
