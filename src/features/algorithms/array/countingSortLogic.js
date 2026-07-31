@@ -11,91 +11,202 @@ export function* countingSortGenerator(initialArray) {
   const n = arr.length;
   if (n === 0) return;
 
+  const minVal = Math.min(...arr);
   const maxVal = Math.max(...arr);
-  const count = new Array(maxVal + 1).fill(0);
+  const range = maxVal - minVal + 1;
+
+  const count = new Array(range).fill(0);
   const result = new Array(n).fill(null);
 
   let comparisons = 0;
   let swaps = 0;
   let step = 0;
-  const totalSteps = n + maxVal + 1 + n;
+  const totalSteps = n + range + n;
 
   yield {
-    type: 'init',
-    payload: { arr: [...arr], count: [...count], result: [...result], totalSteps }
+    type: "init",
+    payload: {
+      arr: [...arr],
+      count: [...count],
+      result: [...result],
+      totalSteps,
+    },
   };
 
   yield {
-    type: 'counting_start',
-    payload: { arr: [...arr], count: [...count], result: [...result], comparisons, swaps, step, totalSteps }
+    type: "counting_start",
+    payload: {
+      arr: [...arr],
+      count: [...count],
+      result: [...result],
+      comparisons,
+      swaps,
+      step,
+      totalSteps,
+    },
   };
 
   for (let i = 0; i < n; i++) {
     const value = arr[i];
+    const normalizedIndex = value - minVal;
+
     comparisons++;
     step++;
 
     yield {
-      type: 'counting',
-      payload: { arr: [...arr], value, current: i, countIndex: value, count: [...count], result: [...result], comparisons, swaps, step, totalSteps }
+      type: "counting",
+      payload: {
+        arr: [...arr],
+        value,
+        current: i,
+        countIndex: normalizedIndex,
+        count: [...count],
+        result: [...result],
+        comparisons,
+        swaps,
+        step,
+        totalSteps,
+      },
     };
 
-    count[value] += 1;
+    count[normalizedIndex] += 1;
 
     yield {
-      type: 'counted',
-      payload: { arr: [...arr], value, current: i, countIndex: value, count: [...count], result: [...result], comparisons, swaps, step, totalSteps }
+      type: "counted",
+      payload: {
+        arr: [...arr],
+        value,
+        current: i,
+        countIndex: normalizedIndex,
+        count: [...count],
+        result: [...result],
+        comparisons,
+        swaps,
+        step,
+        totalSteps,
+      },
     };
   }
 
   yield {
-    type: 'prefix_start',
-    payload: { arr: [...arr], count: [...count], result: [...result], comparisons, swaps, step, totalSteps }
+    type: "prefix_start",
+    payload: {
+      arr: [...arr],
+      count: [...count],
+      result: [...result],
+      comparisons,
+      swaps,
+      step,
+      totalSteps,
+    },
   };
 
   for (let i = 1; i < count.length; i++) {
     step++;
 
     yield {
-      type: 'prefix',
-      payload: { arr: [...arr], value: i, countIndex: i, count: [...count], prevTotal: count[i - 1], result: [...result], comparisons, swaps, step, totalSteps }
+      type: "prefix",
+      payload: {
+        arr: [...arr],
+        value: i,
+        countIndex: i,
+        count: [...count],
+        prevTotal: count[i - 1],
+        result: [...result],
+        comparisons,
+        swaps,
+        step,
+        totalSteps,
+      },
     };
 
     count[i] += count[i - 1];
 
     yield {
-      type: 'prefixed',
-      payload: { arr: [...arr], value: i, countIndex: i, count: [...count], result: [...result], comparisons, swaps, step, totalSteps }
+      type: "prefixed",
+      payload: {
+        arr: [...arr],
+        value: i,
+        countIndex: i,
+        count: [...count],
+        result: [...result],
+        comparisons,
+        swaps,
+        step,
+        totalSteps,
+      },
     };
   }
 
   yield {
-    type: 'placement_start',
-    payload: { arr: [...arr], count: [...count], result: [...result], comparisons, swaps, step, totalSteps }
+    type: "placement_start",
+    payload: {
+      arr: [...arr],
+      count: [...count],
+      result: [...result],
+      comparisons,
+      swaps,
+      step,
+      totalSteps,
+    },
   };
 
   for (let i = n - 1; i >= 0; i--) {
     const value = arr[i];
-    const position = count[value] - 1;
+    const normalizedIndex = value - minVal;
+    const position = count[normalizedIndex] - 1;
+
     step++;
 
     yield {
-      type: 'placement',
-      payload: { arr: [...arr], value, current: i, countIndex: value, position, count: [...count], result: [...result], comparisons, swaps, step, totalSteps }
+      type: "placement",
+      payload: {
+        arr: [...arr],
+        value,
+        current: i,
+        countIndex: normalizedIndex,
+        position,
+        count: [...count],
+        result: [...result],
+        comparisons,
+        swaps,
+        step,
+        totalSteps,
+      },
     };
 
     result[position] = value;
-    count[value] -= 1;
+    count[normalizedIndex] -= 1;
     swaps++;
 
     yield {
-      type: 'placed',
-      payload: { arr: [...arr], value, current: i, countIndex: value, outputIndex: position, count: [...count], result: [...result], comparisons, swaps, step, totalSteps }
+      type: "placed",
+      payload: {
+        arr: [...arr],
+        value,
+        current: i,
+        countIndex: normalizedIndex,
+        outputIndex: position,
+        count: [...count],
+        result: [...result],
+        comparisons,
+        swaps,
+        step,
+        totalSteps,
+      },
     };
   }
 
   yield {
-    type: 'completed',
-    payload: { arr: [...result], count: [...count], result: [...result], comparisons, swaps, step, totalSteps }
+    type: "completed",
+    payload: {
+      arr: [...result],
+      count: [...count],
+      result: [...result],
+      comparisons,
+      swaps,
+      step,
+      totalSteps,
+    },
   };
 }
