@@ -359,8 +359,12 @@ function isConnectionRateLimited(ip) {
 }
 
 // Periodic queue health checker to remove stale entries from matchmaking queues
+const INSTANCE_ID = crypto.randomUUID();
 setInterval(async () => {
   try {
+    const lockAcquired = await redisClient.set('{arena}:health:lock', INSTANCE_ID, 'PX', 25000, 'NX');
+    if (!lockAcquired) return;
+
     const queueKeys = [];
     let cursor = '0';
     do {
