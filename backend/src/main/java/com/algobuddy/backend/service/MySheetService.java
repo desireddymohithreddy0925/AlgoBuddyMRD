@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.web.util.HtmlUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -43,7 +44,7 @@ public class MySheetService {
             MySheet item = existing.get();
             if (item != null) {
                 if (note != null) {
-                    item.setNote(note);
+                    item.setNote(HtmlUtils.htmlEscape(note));
                 }
                 if (isPublic != null) {
                     item.setPublic(isPublic);
@@ -57,7 +58,7 @@ public class MySheetService {
             MySheet item = new MySheet();
             item.setUserId(userId);
             item.setProblemId(problemId);
-            item.setNote(note == null ? "" : note);
+            item.setNote(note == null ? "" : HtmlUtils.htmlEscape(note));
             item.setPublic(isPublic != null && isPublic);
             if (sharedNotes != null) {
                 item.setSharedNotes(sharedNotes);
@@ -106,7 +107,7 @@ public class MySheetService {
                 MySheet newItem = new MySheet();
                 newItem.setUserId(targetUserId);
                 newItem.setProblemId(sharedItem.getProblemId());
-                newItem.setNote(sharedItem.isSharedNotes() ? sharedItem.getNote() : "");
+                newItem.setNote(sharedItem.isSharedNotes() ? HtmlUtils.htmlEscape(sharedItem.getNote()) : "");
                 newItem.setPublic(false);
                 newItem.setSharedNotes(false);
                 toSave.add(newItem);

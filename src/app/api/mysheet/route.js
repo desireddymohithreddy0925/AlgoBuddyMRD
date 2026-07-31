@@ -3,6 +3,12 @@ import { getAuthenticatedUser } from "@/lib/auth";
 import { getSupabaseServerClient, jsonResponse, errorResponse } from "@/lib/serverApi";
 import { validateCsrfOrigin } from "@/lib/csrfConstants";
 
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (m) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[m]);
+}
+
 export async function GET(request) {
   try {
     const authResult = await getAuthenticatedUser();
@@ -26,7 +32,7 @@ export async function GET(request) {
     (data || []).forEach((row) => {
       sheet[row.problem_id] = {
         addedAt: row.added_at,
-        note: row.note || "",
+        note: row.note ? escapeHtml(row.note) : "",
       };
     });
 
@@ -66,7 +72,7 @@ export async function POST(request) {
     const row = {
       user_id: authResult.user.id,
       problem_id: problemId,
-      note,
+      note: escapeHtml(note),
       added_at: existing?.added_at ?? new Date().toISOString(),
     };
     if (typeof isPublic === "boolean") {
