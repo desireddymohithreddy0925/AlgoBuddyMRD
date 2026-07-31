@@ -42,12 +42,22 @@ export function* interpolationSearchGenerator(arr, target) {
       return;
     }
 
-    const pos =
-      low +
-      Math.floor(
-        ((target - arr[low]) * (high - low)) /
-          (arr[high] - arr[low])
-      );
+    let pos;
+
+if (arr[high] === arr[low]) {
+  if (arr[low] === target) {
+    pos = low;
+  } else {
+    break;
+  }
+} else {
+  pos =
+    low +
+    Math.floor(
+      ((target - arr[low]) * (high - low)) /
+        (arr[high] - arr[low])
+    );
+}
 
     yield {
       type: "checking",
