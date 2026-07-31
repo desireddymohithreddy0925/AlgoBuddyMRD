@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Layers, GitBranch, Terminal, HelpCircle, ArrowRight, Search, Network, Brain, TreePine, Hash, Cpu } from "lucide-react";
 import { motion } from "framer-motion";
@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 export default function QuizPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
+  const inputRef = useRef(null);
   
   const quizzes = [
     {
@@ -388,6 +389,30 @@ export default function QuizPage() {
         "bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600",
     },
   ];
+  useEffect(() => {
+  const handleKeyDown = (e) => {
+    const isTyping =
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement;
+      e.target.isContentEditable;
+
+    if (isTyping) return;
+
+    if (
+      e.key === "/" ||
+      ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k")
+    ) {
+      e.preventDefault();
+      inputRef.current?.focus();
+    }
+  };
+
+  window.addEventListener("keydown", handleKeyDown);
+
+  return () => {
+    window.removeEventListener("keydown", handleKeyDown);
+  };
+}, []);
   const filteredQuizzes = quizzes.filter((quiz) =>
     quiz.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -411,6 +436,7 @@ export default function QuizPage() {
             />
 
             <input
+              ref={inputRef}
               type="text"
               placeholder="Search quizzes... (Press / or Ctrl+K)"
               value={searchTerm}
