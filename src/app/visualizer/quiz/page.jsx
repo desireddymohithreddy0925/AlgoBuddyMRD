@@ -12,7 +12,7 @@ export default function QuizPage() {
   const quizzes = [
     {
       title: "Searching Quiz",
-      description: "Practice all searching algorithms including liner search, binary search, ternary search, etc.",
+      description: "Practice all searching algorithms including linear search, binary search, ternary search, etc.",
       href: "/visualizer/array/searching/quiz",
       icon: Search,
       filename: "searching_quiz.js",
@@ -320,7 +320,7 @@ export default function QuizPage() {
     {
       title: "Graph Algorithms Quiz",
       description:
-        "Practice Dijkstra's, Bellman-Ford, Floyd-Warshall, Prim's, Kruskal's, and Topological Sort algorithms.",
+        "Practice Dijkstra's, Bellman-Ford, Floyd-Warshall, Prim's, Kruskal's, Topological Sort, and Kosaraju's algorithms.",
       href: "/visualizer/graph/algorithms/quiz",
       filename: "graph_algorithms_quiz.js",
       icon: Network,
@@ -372,6 +372,20 @@ export default function QuizPage() {
         "bg-cyan-500/10 border border-cyan-500/20 dark:border-cyan-500/30 text-cyan-600 dark:text-cyan-400",
       btnBg:
         "bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-600",
+    },
+    {
+      title: "AI Algorithms Quiz",
+      description:
+        "Test your understanding of AI algorithms including A* Search, Minimax, Alpha-Beta Pruning, and Monte Carlo Tree Search.",
+      href: "/visualizer/ai/quiz",
+      icon: Brain,
+      filename: "ai_algorithms_quiz.js",
+      cardBorder: "border-rose-500/20 dark:border-rose-500/30",
+      topBarBg: "bg-rose-500/10 dark:bg-rose-500/20",
+      iconStyle:
+        "bg-rose-500/10 border border-rose-500/20 dark:border-rose-500/30 text-rose-600 dark:text-rose-400",
+      btnBg:
+        "bg-rose-600 hover:bg-rose-700 dark:bg-rose-500 dark:hover:bg-rose-600",
     },
   ];
   const filteredQuizzes = quizzes.filter((quiz) =>
@@ -465,6 +479,12 @@ export default function QuizPage() {
             </div>
           )}
         </div>
+        <Link
+          href="/visualizer"
+            className="mt-16 mx-auto flex w-fit items-center gap-2 px-6 py-3 rounded-2xl border border-udemy-border dark:border-udemy-dark-border hover:border-udemy-purple hover:text-udemy-purple dark:hover:text-udemy-purple-light transition bg-white dark:hover:border-udemy-purple dark:bg-udemy-dark-surface font-medium"
+        >
+          ← Back to Visualizer
+        </Link>
       </div>
     </div>
   );

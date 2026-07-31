@@ -35,6 +35,8 @@ export const sections = [
           { name: "Ternary Search", path: "/visualizer/array/ternary-search" },
           { name: "Jump Search", path: "/visualizer/array/jump-search" },
           { name: "Fibonacci Search", path: "/visualizer/array/fibonacci-search" },
+          { name: "Exponential Search", path: "/visualizer/array/exponential-search" },
+          { name: "Interpolation Search", path: "/visualizer/array/interpolation-search"},
         ],
       },
       {
@@ -285,6 +287,7 @@ export const sections = [
           { name: "AVL Tree Deletion", path: "/visualizer/tree/avl/deletion" },
           { name: "Trie (Prefix Tree)", path: "/visualizer/tree/advanced/trie" },
           { name: "Segment Trees", path: "/visualizer/tree/advanced/segment" },
+          { name: "2D Segment Trees", path: "/visualizer/tree/advanced/segment-2d" },
           { name: "Fenwick Trees", path: "/visualizer/tree/advanced/fenwick" },
         ],
       },

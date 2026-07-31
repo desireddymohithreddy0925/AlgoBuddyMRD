@@ -4,7 +4,6 @@ import { sections } from "@/lib/visualizerSections";
 import CategoryClient from "@/app/visualizer/components/CategoryClient";
 import Breadcrumbs from "@/app/components/ui/Breadcrumbs";
 import Footer from "@/app/components/footer";
-import DiscussionThread from "@/app/components/visualizer/DiscussionThread";
 
 
 export async function generateStaticParams() {
@@ -78,9 +77,6 @@ export default async function DynamicRouterPage({ params }) {
   return (
     <>
       <AlgorithmComponent />
-      <div className="bg-white dark:bg-[#1c1d1f] w-full border-t dark:border-gray-800 pt-8 pb-16">
-        <DiscussionThread topicId={slugKey} />
-      </div>
     </>
   );
 }

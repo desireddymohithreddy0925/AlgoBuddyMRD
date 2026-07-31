@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Search, Code, FileText, BookOpen, LayoutDashboard, X } from "lucide-react";
 import { SEARCH_INDEX, CATEGORIES } from "@/app/components/commandPaletteIndex";
 import { supabase } from "@/lib/supabase";
+import FocusTrap from "@/app/components/ui/FocusTrap";
 
 // ── Icon mapping per category ────────────────────────────────────────────────
 const CATEGORY_ICON = {
@@ -183,139 +184,109 @@ export function CommandPalette() {
   }, []);
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true" 
-      aria-label="Command palette — search AlgoBuddy"
-      className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh] px-4"
-    >
-      {/* Backdrop */}
+    <FocusTrap>
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-        aria-hidden="true"
-        onClick={() => setIsOpen(false)}
-      />
-
-      {/* Palette card */}
-      <div className="relative w-full max-w-lg rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-900 shadow-2xl overflow-hidden flex flex-col max-h-[70vh]">
-
-        {/* ── Search input row ── */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <Search
-            size={18}
-            className="shrink-0 text-gray-400 dark:text-gray-500"
-            aria-hidden="true"
-          />
-          <input
-            ref={inputRef}
-            type="text"
-            role="combobox"
-            aria-autocomplete="list"
-            aria-expanded={results.length > 0}
-            aria-controls="command-palette-listbox"
-            aria-activedescendant={results[selectedIdx] ? `cp-item-${selectedIdx}` : undefined}
-            value={query}
-            onChange={(e) => { setQuery(e.target.value); setSelected(0); }}
-            onKeyDown={handleInputKeyDown}
-            placeholder="Search visualizers, pages, tutorials…"
-            className="flex-1 bg-transparent outline-none text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500"
-            aria-label="Search AlgoBuddy"
-            autoComplete="off"
-            spellCheck={false}
-          />
-          {/* Escape hint */}
-          <kbd
-            className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 select-none"
-            aria-label="Press Escape to close"
-          >
-            ESC
-          </kbd>
-          <button
-            type="button"
-            onClick={() => setIsOpen(false)}
-            aria-label="Close search"
-            className="sm:hidden p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#a435f0]"
-          >
-            <X size={16} aria-hidden="true" />
-          </button>
-        </div>
-
-        {/* ── Results ── */}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Command palette — search AlgoBuddy"
+        className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh] px-4"
+      >
+        {/* Backdrop */}
         <div
-          id="command-palette-listbox"
-          role="listbox"
-          aria-label="Search results"
-          ref={listRef}
-          className="overflow-y-auto p-2 flex-1"
-        >
-          {results.length === 0 ? (
-            <p className="text-center text-sm text-gray-400 dark:text-gray-500 py-8">
-              No results for <strong className="text-gray-600 dark:text-gray-300">"{query}"</strong>
-            </p>
-          ) : (
-            grouped.map(({ cat, items }) => {
-              const Icon = CATEGORY_ICON[cat] ?? Code;
-              return (
-                <div key={cat} className="mb-2">
-                  {/* Category heading */}
-                  <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500 select-none">
-                    {cat}
-                  </p>
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+          aria-hidden="true"
+          onClick={() => setIsOpen(false)}
+        />
 
-                  {items.map((item) => {
-                    const globalIdx = results.indexOf(item);
-                    const isSelected = globalIdx === selectedIdx;
+        {/* Palette card */}
+        <div className="relative w-full max-w-lg rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-neutral-900 shadow-2xl overflow-hidden flex flex-col max-h-[70vh]">
 
-                    return (
-                      <button
-                        key={item.path}
-                        id={`cp-item-${globalIdx}`}
-                        role="option"
-                        aria-selected={isSelected}
-                        type="button"
-                        onClick={() => handleSelect(item)}
-                        onMouseEnter={() => setSelected(globalIdx)}
-                        className={`
-                          w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left
-                          transition-colors duration-75 focus:outline-none
-                          ${isSelected
-                            ? "bg-[#a435f0]/10 text-[#a435f0] dark:bg-[#a435f0]/20"
-                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-neutral-800"
-                          }
-                        `}
-                      >
-                        <Icon
-                          size={16}
-                          aria-hidden="true"
-                          className={isSelected ? "text-[#a435f0]" : "text-gray-400 dark:text-gray-500"}
-                        />
-                        <span className="flex-1 min-w-0 text-sm font-medium truncate">
-                          <Highlighted text={item.name} query={query} />
-                        </span>
-                        {isSelected && (
-                          <kbd className="shrink-0 text-[9px] font-mono px-1.5 py-0.5 rounded border border-[#a435f0]/40 bg-[#a435f0]/10 text-[#a435f0] select-none">
-                            ↵
-                          </kbd>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              );
-            })
-          )}
-        </div>
+          {/* ── Search input row ── */}
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+            <Search
+              size={18}
+              className="shrink-0 text-gray-400 dark:text-gray-500"
+              aria-hidden="true"
+            />
+            <input
+              ref={inputRef}
+              type="text"
+              role="combobox"
+              aria-autocomplete="list"
+              aria-expanded={results.length > 0}
+              aria-controls="command-palette-listbox"
+              aria-activedescendant={results[selectedIdx] ? `cp-item-${selectedIdx}` : undefined}
+              value={query}
+              onChange={(e) => { setQuery(e.target.value); setSelected(0); }}
+              onKeyDown={handleInputKeyDown}
+              placeholder="Search visualizers, pages, tutorials…"
+              className="flex-1 bg-transparent outline-none text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+              aria-label="Search AlgoBuddy"
+              autoComplete="off"
+              spellCheck={false}
+            />
+            {/* Escape hint */}
+            <kbd
+              className="hidden sm:inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 select-none"
+              aria-label="Press Escape to close"
+            >
+              ESC
+            </kbd>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              aria-label="Close search"
+              className="sm:hidden p-1 rounded text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-[#a435f0]"
+            >
+              <X size={16} aria-hidden="true" />
+            </button>
+          </div>
 
-        {/* ── Footer hint ── */}
-        <div className="px-4 py-2 border-t border-gray-100 dark:border-gray-800 flex items-center gap-4 text-[10px] text-gray-400 dark:text-gray-500 select-none">
-          <span><kbd className="font-mono">↑↓</kbd> navigate</span>
-          <span><kbd className="font-mono">↵</kbd> open</span>
-          <span><kbd className="font-mono">Esc</kbd> close</span>
-          <span className="ml-auto">
-            <kbd className="font-mono">Ctrl</kbd>+<kbd className="font-mono">K</kbd> to reopen
-          </span>
-        </div>
-      </div>
-    </div>
+                    {/* ── Results ── */}
+          <div
+            id="command-palette-listbox"
+            role="listbox"
+            aria-label="Search results"
+            ref={listRef}
+            className="overflow-y-auto p-2 flex-1"
+          >
+            {grouped.length === 0 && !isSearchingSupabase ? (
+              <div className="p-3 text-sm text-gray-500 dark:text-gray-400">No results</div>
+            ) : (
+              grouped.map(({ cat, items }) => {
+                const Icon = CATEGORY_ICON[cat] || Search;
+                return (
+                  <div key={cat} className="mb-2">
+                    <div className="px-2 py-1 text-xs font-medium text-gray-500 dark:text-gray-400">{cat}</div>
+                    {items.map((item, idx) => {
+                      const globalIdx = results.indexOf(item);
+                      return (
+                        <button
+                          id={`cp-item-${globalIdx}`}
+                          key={item.path}
+                          role="option"
+                          aria-selected={selectedIdx === globalIdx}
+                          onClick={() => handleSelect(item)}
+                          className={`w-full text-left flex items-center gap-3 px-2 py-2 rounded hover:bg-gray-100 dark:hover:bg-neutral-800 ${selectedIdx === globalIdx ? "bg-gray-100 dark:bg-neutral-800" : ""}`}
+                        >
+                          <Icon size={16} className="shrink-0 text-gray-400 dark:text-gray-500" aria-hidden="true" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm text-gray-900 dark:text-gray-100 truncate">
+                              <Highlighted text={item.name} query={query} />
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{item.path}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+        </div> {/* palette card */}
+      </div> {/* dialog wrapper */}
+    </FocusTrap>
   );
 }

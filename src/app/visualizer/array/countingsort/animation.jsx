@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import ArrayGenerator from "@/app/components/ui/randomArray";
 import CustomArrayInput from "@/app/components/ui/customArrayInput";
 import useVisualizerKeyboard from "@/app/hooks/useVisualizerKeyboard";
@@ -169,6 +169,7 @@ const precomputeSteps = (inputArray) => {
 
 const CountingSortVisualizer = () => {
   const [array, setArray] = useState([]);
+  const replayTimeoutRef = useRef(null);
 
   const [visualState, setVisualState] = useState({
     counts: [], output: [], comparisons: 0, swaps: 0, 
@@ -199,9 +200,10 @@ const CountingSortVisualizer = () => {
   const currentStepData = steps[engine.currentStep];
 
   const handleStart = useCallback(() => {
+    clearTimeout(replayTimeoutRef.current);
     if (currentStepData?.sorted) {
       engine.reset();
-      setTimeout(() => engine.play(), 50);
+      replayTimeoutRef.current = setTimeout(() => engine.play(), 50);
     } else {
       engine.play();
     }
@@ -216,6 +218,10 @@ const CountingSortVisualizer = () => {
     engine.reset();
   }, [engine]);
 
+  useEffect(() => {
+    return () => clearTimeout(replayTimeoutRef.current);
+    }, []);
+
   useVisualizerKeyboard({
     onStart: handleStart,
     onReset: handleReset,
@@ -224,6 +230,8 @@ const CountingSortVisualizer = () => {
     speed: engine.speed / 500,
     sorting: engine.isPlaying,
     sorted: currentStepData?.sorted || false,
+    onStepForward: engine.stepForward,
+    onStepBackward: engine.stepBackward,
   });
 
   const handleExplainStep = () => {

@@ -190,18 +190,14 @@ const Footer = () => {
                       behavior: "smooth",
                     });
                   }}
+                  className={footerLink}
+                  aria-label="Navigate to homepage"
                 >
                   Home
                 </Link>
                 <Link href="/visualizer" className={footerLink}>
                   Visualizations
                 </Link>
-                {/* <Link href="/data-structures" className={footerLink}>
-                  Data Structures
-                </Link> */}
-                {/* <Link href="/algorithms" className={footerLink}>
-                  Algorithms
-                </Link> */}
                 <Link href="/about" className={footerLink}>
                   About Us
                 </Link>
@@ -267,6 +263,7 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors duration-300 text-sm"
+                  aria-label="AlgoBuddy on GitHub"
                 >
                   <FaGithub className="w-4 h-4" /> GitHub
                 </a>
@@ -275,6 +272,7 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors duration-300 text-sm"
+                  aria-label="AlgoBuddy on YouTube"
                 >
                   <FaYoutube className="w-4 h-4" /> YouTube
                 </a>
@@ -283,6 +281,7 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors duration-300 text-sm"
+                  aria-label="AlgoBuddy on Instagram"
                 >
                   <FaInstagram className="w-4 h-4" /> Instagram
                 </a>
@@ -291,6 +290,7 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors duration-300 text-sm"
+                  aria-label="AlgoBuddy on X (Twitter)"
                 >
                   <FaXTwitter className="w-4 h-4" /> Twitter
                 </a>
@@ -303,20 +303,22 @@ const Footer = () => {
               <div className="space-y-4">
                 <Link href="/privacy"
                   className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors duration-300 text-sm"
+                  aria-label="View Privacy Policy"
                 >
                   Privacy Policy
                 </Link>
                 
-                  <Link href="/terms" className={footerLink}>
+                  <Link href="/terms" className={footerLink} aria-label="View Terms of Service">
   Terms of Service
 </Link>
-<Link href="/cookie" className={footerLink}>
+<Link href="/cookie" className={footerLink} aria-label="View Cookie Policy">
   Cookies Policy
 </Link>
 
 
                 <Link href="/code-of-conduct"
                   className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors duration-300 text-sm"
+                  aria-label="View Code of Conduct"
                 >
                   Code Of Conduct
                 </Link>
