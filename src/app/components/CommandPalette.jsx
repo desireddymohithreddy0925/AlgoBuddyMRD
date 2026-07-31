@@ -185,7 +185,7 @@ export function CommandPalette() {
   return (
     <div
       role="dialog"
-      aria-modal="true"
+      aria-modal="true" 
       aria-label="Command palette — search AlgoBuddy"
       className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh] px-4"
     >
